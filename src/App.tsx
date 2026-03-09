@@ -1,8 +1,10 @@
+import { useState, useEffect } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { EntityProvider } from '@/contexts/EntityContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -51,6 +53,32 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Onboarding guard — redirects to /onboarding if user has no entities
+function OnboardingGuard({ children }: { children: React.ReactNode }) {
+  const { user, isDemoMode } = useAuth();
+  const [checked, setChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (isDemoMode) { setChecked(true); return; }
+    if (!user) { setChecked(true); return; }
+
+    supabase
+      .from('entities')
+      .select('id', { count: 'exact', head: true })
+      .then(({ count }) => {
+        setNeedsOnboarding((count ?? 0) === 0);
+        setChecked(true);
+      });
+  }, [user, isDemoMode]);
+
+  if (!checked) return null;
+  if (needsOnboarding && window.location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+  return <>{children}</>;
+}
+
 // App Routes Component
 function AppRoutes() {
   const { user, isDemoMode } = useAuth();
@@ -71,7 +99,9 @@ function AppRoutes() {
         <Route element={
           <ProtectedRoute>
             <EntityProvider>
-              <AppShell />
+              <OnboardingGuard>
+                <AppShell />
+              </OnboardingGuard>
             </EntityProvider>
           </ProtectedRoute>
         }>

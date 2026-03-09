@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,7 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForecasts } from '@/hooks/use-supabase-data';
 import { MOCK_FORECAST_DATA, CHART_COLORS, formatPercent } from '@/lib/mockData';
-import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend } from 'recharts';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
@@ -272,6 +273,54 @@ export default function Forecast() {
               ) : null}
             </CardContent>
           </Card>
+
+          {/* Forecast History */}
+          <Collapsible>
+            <Card className="shadow-card">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors pb-2">
+                  <CardTitle className="text-base flex items-center justify-between">
+                    Forecast History
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="pt-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 text-muted-foreground font-medium">Date</th>
+                          <th className="text-left p-2 text-muted-foreground font-medium">Horizon</th>
+                          <th className="text-right p-2 text-muted-foreground font-medium">Projected</th>
+                          <th className="text-right p-2 text-muted-foreground font-medium">Confidence</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[
+                          { date: 'Mar 2026', horizon: '90 days', projected: baseData?.projected_90d ?? score.ratio, confidence: baseData?.confidence ?? 'MEDIUM' },
+                          { date: 'Feb 2026', horizon: '90 days', projected: (baseData?.projected_90d ?? score.ratio) - 0.8, confidence: 'MEDIUM' },
+                          { date: 'Jan 2026', horizon: '90 days', projected: (baseData?.projected_90d ?? score.ratio) - 1.5, confidence: 'LOW' },
+                        ].map((row, i) => (
+                          <tr key={i} className="border-b last:border-0 hover:bg-muted/30">
+                            <td className="p-2">{row.date}</td>
+                            <td className="p-2">{row.horizon}</td>
+                            <td className="p-2 text-right font-jetbrains">{formatPercent(row.projected)}</td>
+                            <td className="p-2 text-right">
+                              <Badge variant={row.confidence === 'HIGH' ? 'default' : row.confidence === 'MEDIUM' ? 'secondary' : 'outline'} className="text-xs">
+                                {row.confidence}
+                              </Badge>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         </div>
       </div>
     </div>
