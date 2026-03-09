@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/lib/mockData';
-import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX } from '@/lib/export-utils';
+import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportRegulatoryPDF, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX } from '@/lib/export-utils';
 import { useAuditLogs, type AuditLog, useForecasts, useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { getRelativeTime } from '@/lib/mockData';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';

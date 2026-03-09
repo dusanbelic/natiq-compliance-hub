@@ -255,6 +255,33 @@ export function exportForecastPDF(data: DashboardData, forecast: { projected_30d
   doc.save(`forecast_report_${entity.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
+// ─── Regulatory Impact Summary (PDF) ───────────────────────────────────────
+
+export function exportRegulatoryPDF(changes: RegulatoryChange[]) {
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const doc = new jsPDF('landscape');
+  let y = addHeader(doc, 'Regulatory Impact Summary', `Generated on ${now}`);
+
+  autoTable(doc, {
+    startY: y,
+    margin: { left: 14, right: 14 },
+    head: [['Country', 'Programme', 'Headline', 'Impact', 'Change Type', 'Effective Date', 'Summary']],
+    body: changes.map(c => [
+      c.country, c.program, c.headline, c.impact_level || '—', c.change_type || '—',
+      c.effective_date || '—', c.summary || '',
+    ]),
+    headStyles: { fillColor: COLORS.primary, fontSize: 9 },
+    styles: { fontSize: 8, cellPadding: 3, overflow: 'linebreak' },
+    columnStyles: {
+      2: { cellWidth: 55 },
+      6: { cellWidth: 70 },
+    },
+  });
+
+  addFooter(doc);
+  doc.save(`regulatory_impact_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
 // ─── Regulatory Impact Summary (CSV) ───────────────────────────────────────
 
 export function exportRegulatoryCSV(changes: RegulatoryChange[]) {
