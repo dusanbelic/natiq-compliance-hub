@@ -53,6 +53,7 @@ export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount 
   const { entities, selectedEntityId, setSelectedEntityId, selectedEntity } = useEntity();
   const { profile, signOut, isDemoMode } = useAuth();
   const { t } = useLanguage();
+  const { canViewSettings } = usePermissions();
   const [entityDropdownOpen, setEntityDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
