@@ -5,34 +5,80 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useEntity } from '@/contexts/EntityContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useForecasts } from '@/hooks/use-supabase-data';
 import { MOCK_FORECAST_DATA, CHART_COLORS, formatPercent } from '@/lib/mockData';
 import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend } from 'recharts';
+import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
 
 export default function Forecast() {
-  const { selectedEntity, dashboardData } = useEntity();
-  const baseData = MOCK_FORECAST_DATA[selectedEntity.id];
+  const { selectedEntity, dashboardData, loading: entityLoading } = useEntity();
+  const { isDemoMode } = useAuth();
+  const { data: liveForecast, isLoading: forecastLoading } = useForecasts(selectedEntity.id);
   const { score } = dashboardData;
 
-  const [scenario, setScenario] = useState({
-    nationalHires: 0,
-    expatHires: 0,
-    nationalDepartures: 0,
-    expatDepartures: 0,
-  });
+  const mockData = MOCK_FORECAST_DATA[selectedEntity.id];
 
+  // Build baseData from live forecast or mock
+  const baseData = useMemo(() => {
+    if (isDemoMode) return mockData;
+    if (!liveForecast) return mockData; // fallback
+
+    const projected30 = liveForecast.projected_ratio_30d ? Number(liveForecast.projected_ratio_30d) : score.ratio;
+    const projected60 = liveForecast.projected_ratio_60d ? Number(liveForecast.projected_ratio_60d) : score.ratio;
+    const projected90 = liveForecast.projected_ratio_90d ? Number(liveForecast.projected_ratio_90d) : score.ratio;
+    const confidence = (liveForecast.confidence as 'HIGH' | 'MEDIUM' | 'LOW') || 'MEDIUM';
+    const riskDate = liveForecast.risk_date || null;
+    const target = score.target;
+
+    // Generate chart data points
+    const months = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const historicalRatios = [
+      Math.max(0, score.ratio - 4),
+      Math.max(0, score.ratio - 3),
+      Math.max(0, score.ratio - 2.5),
+      Math.max(0, score.ratio - 1.5),
+      Math.max(0, score.ratio - 0.5),
+      score.ratio,
+    ];
+    const projectedRatios = [
+      null, null, null, null, null, score.ratio,
+      projected30,
+      projected60,
+      projected90,
+    ];
+
+    const data = months.map((date, i) => ({
+      date,
+      historical: i < 6 ? historicalRatios[i] : undefined,
+      projected: projectedRatios[i] ?? undefined,
+      isToday: i === 5,
+      scenario: undefined as number | undefined,
+    }));
+
+    return {
+      data,
+      projected_30d: projected30,
+      projected_60d: projected60,
+      projected_90d: projected90,
+      confidence,
+      risk_date: riskDate,
+      target,
+    };
+  }, [isDemoMode, liveForecast, mockData, score]);
+
+  const [scenario, setScenario] = useState({
+    nationalHires: 0, expatHires: 0, nationalDepartures: 0, expatDepartures: 0,
+  });
   const [appliedScenario, setAppliedScenario] = useState(scenario);
   const [isCalculating, setIsCalculating] = useState(false);
 
-  // Calculate projected ratios based on scenario
   const projections = useMemo(() => {
     const { nationalHires, expatHires, nationalDepartures, expatDepartures } = appliedScenario;
-    
     const currentNationals = score.national_count;
     const currentTotal = score.total_count;
-    
-    // Net changes per period (assume evenly distributed over 90 days)
     const netNationals30 = (nationalHires - nationalDepartures) / 3;
     const netTotal30 = ((nationalHires + expatHires) - (nationalDepartures + expatDepartures)) / 3;
 
@@ -48,7 +94,6 @@ export default function Forecast() {
     const total90 = currentTotal + ((nationalHires + expatHires) - (nationalDepartures + expatDepartures));
     const ratio90 = total90 > 0 ? (nationals90 / total90) * 100 : 0;
 
-    // Determine risk date
     let riskDate: string | null = null;
     if (ratio30 < score.target) riskDate = '~30 days';
     else if (ratio60 < score.target) riskDate = '~60 days';
@@ -63,36 +108,24 @@ export default function Forecast() {
     };
   }, [appliedScenario, score]);
 
-  // Generate chart data with scenario projections
   const chartData = useMemo(() => {
     if (!baseData) return [];
-    
-    // Create a copy with scenario field
     const data = baseData.data.map(d => ({ ...d, scenario: undefined as number | undefined }));
-    
-    // If scenario applied, override projected values
     if (projections.hasScenario) {
       const todayIndex = data.findIndex(d => d.isToday);
       if (todayIndex >= 0) {
-        // Interpolate between today and projected values
         const step30 = (projections.ratio30 - score.ratio) / 3;
         const step60 = (projections.ratio60 - projections.ratio30) / 3;
         const step90 = (projections.ratio90 - projections.ratio60) / 3;
-        
         data.forEach((point, idx) => {
           const i = idx - todayIndex;
-          if (i <= 0) return; // Before or at today
-          if (i <= 3) {
-            point.scenario = score.ratio + (step30 * i);
-          } else if (i <= 6) {
-            point.scenario = projections.ratio30 + (step60 * (i - 3));
-          } else {
-            point.scenario = projections.ratio60 + (step90 * (i - 6));
-          }
+          if (i <= 0) return;
+          if (i <= 3) point.scenario = score.ratio + (step30 * i);
+          else if (i <= 6) point.scenario = projections.ratio30 + (step60 * (i - 3));
+          else point.scenario = projections.ratio60 + (step90 * (i - 6));
         });
       }
     }
-    
     return data;
   }, [baseData, projections, score]);
 
@@ -110,6 +143,23 @@ export default function Forecast() {
     setAppliedScenario({ nationalHires: 0, expatHires: 0, nationalDepartures: 0, expatDepartures: 0 });
     toast.info('Scenario reset to baseline');
   };
+
+  const loading = !isDemoMode && (entityLoading || forecastLoading);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="font-sora font-bold text-2xl">90-Day Compliance Forecast</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2"><CardSkeleton className="h-96" /></div>
+          <div className="space-y-4">
+            <CardSkeleton className="h-64" />
+            <CardSkeleton className="h-48" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const displayRatio30 = projections.hasScenario ? projections.ratio30 : baseData?.projected_30d || 0;
   const displayRatio60 = projections.hasScenario ? projections.ratio60 : baseData?.projected_60d || 0;
@@ -131,15 +181,12 @@ export default function Forecast() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Area */}
         <div className="lg:col-span-2 space-y-4">
           {displayRiskDate && (
             <div className="p-4 rounded-lg bg-amber-light flex items-center gap-3">
               <AlertTriangle className="w-6 h-6 text-amber shrink-0" />
               <div>
-                <p className="font-semibold text-amber">
-                  ⚠ Compliance projected to breach minimum {displayRiskDate}
-                </p>
+                <p className="font-semibold text-amber">⚠ Compliance projected to breach minimum {displayRiskDate}</p>
                 <p className="text-sm text-amber/80">Take action to avoid penalties</p>
               </div>
             </div>
@@ -167,128 +214,61 @@ export default function Forecast() {
                 </ResponsiveContainer>
               </div>
               <div className="flex justify-center gap-6 mt-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-0.5 bg-teal" />
-                  <span>Historical</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-0.5 bg-secondary" style={{ borderStyle: 'dashed' }} />
-                  <span>Baseline Projection</span>
-                </div>
+                <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-teal" /><span>Historical</span></div>
+                <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-secondary" style={{ borderStyle: 'dashed' }} /><span>Baseline Projection</span></div>
                 {projections.hasScenario && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-0.5 bg-status-green" />
-                    <span>Your Scenario</span>
-                  </div>
+                  <div className="flex items-center gap-2"><div className="w-4 h-0.5 bg-status-green" /><span>Your Scenario</span></div>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Confidence */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Confidence:</span>
-            <Badge variant={baseData?.confidence === 'HIGH' ? 'default' : 'secondary'}>
-              {baseData?.confidence || 'MEDIUM'}
-            </Badge>
+            <Badge variant={baseData?.confidence === 'HIGH' ? 'default' : 'secondary'}>{baseData?.confidence || 'MEDIUM'}</Badge>
             <span className="text-xs text-muted-foreground">Based on historical patterns and current trajectory</span>
           </div>
         </div>
 
-        {/* Scenario Panel */}
         <div className="space-y-4">
           <Card className="shadow-card">
             <CardHeader><CardTitle>Adjust Scenario</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Modify inputs to see how hiring or departures affect your forecast.
-              </p>
-              
+              <p className="text-sm text-muted-foreground">Modify inputs to see how hiring or departures affect your forecast.</p>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">National Hires</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={scenario.nationalHires}
-                    onChange={(e) => setScenario({ ...scenario, nationalHires: Math.max(0, +e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Expat Hires</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={scenario.expatHires}
-                    onChange={(e) => setScenario({ ...scenario, expatHires: Math.max(0, +e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">National Departures</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={scenario.nationalDepartures}
-                    onChange={(e) => setScenario({ ...scenario, nationalDepartures: Math.max(0, +e.target.value) })}
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Expat Departures</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={scenario.expatDepartures}
-                    onChange={(e) => setScenario({ ...scenario, expatDepartures: Math.max(0, +e.target.value) })}
-                  />
-                </div>
+                <div><Label className="text-xs">National Hires</Label><Input type="number" min={0} value={scenario.nationalHires} onChange={(e) => setScenario({ ...scenario, nationalHires: Math.max(0, +e.target.value) })} /></div>
+                <div><Label className="text-xs">Expat Hires</Label><Input type="number" min={0} value={scenario.expatHires} onChange={(e) => setScenario({ ...scenario, expatHires: Math.max(0, +e.target.value) })} /></div>
+                <div><Label className="text-xs">National Departures</Label><Input type="number" min={0} value={scenario.nationalDepartures} onChange={(e) => setScenario({ ...scenario, nationalDepartures: Math.max(0, +e.target.value) })} /></div>
+                <div><Label className="text-xs">Expat Departures</Label><Input type="number" min={0} value={scenario.expatDepartures} onChange={(e) => setScenario({ ...scenario, expatDepartures: Math.max(0, +e.target.value) })} /></div>
               </div>
-
               <Button className="w-full" onClick={handleUpdateForecast} disabled={isCalculating}>
                 {isCalculating ? 'Calculating...' : 'Update Forecast'}
               </Button>
             </CardContent>
           </Card>
 
-          {/* Projections Summary */}
           <Card className="shadow-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
                 Impact Summary
-                {projections.hasScenario && (
-                  <Badge variant="outline" className="text-xs">Scenario</Badge>
-                )}
+                {projections.hasScenario && <Badge variant="outline" className="text-xs">Scenario</Badge>}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">In 30 days:</span>
-                <span className="font-jetbrains font-semibold">{formatPercent(displayRatio30)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">In 60 days:</span>
-                <span className="font-jetbrains font-semibold">{formatPercent(displayRatio60)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">In 90 days:</span>
-                <span className="font-jetbrains font-semibold">{formatPercent(displayRatio90)}</span>
-              </div>
+              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">In 30 days:</span><span className="font-jetbrains font-semibold">{formatPercent(displayRatio30)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">In 60 days:</span><span className="font-jetbrains font-semibold">{formatPercent(displayRatio60)}</span></div>
+              <div className="flex justify-between items-center"><span className="text-sm text-muted-foreground">In 90 days:</span><span className="font-jetbrains font-semibold">{formatPercent(displayRatio90)}</span></div>
               <div className="border-t pt-3 flex justify-between items-center">
                 <span className="text-sm font-medium">Net Change:</span>
                 <div className={`flex items-center gap-1 ${isImproving ? 'text-status-green' : 'text-status-red'}`}>
                   {isImproving ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                  <span className="font-jetbrains font-semibold">
-                    {isImproving ? '+' : ''}{trend90.toFixed(1)}%
-                  </span>
+                  <span className="font-jetbrains font-semibold">{isImproving ? '+' : ''}{trend90.toFixed(1)}%</span>
                 </div>
               </div>
               {displayRatio90 < score.target ? (
-                <div className="p-2 rounded bg-status-red-light text-status-red text-xs">
-                  ⚠ Still below {score.target}% target at 90 days
-                </div>
+                <div className="p-2 rounded bg-status-red-light text-status-red text-xs">⚠ Still below {score.target}% target at 90 days</div>
               ) : displayRatio90 >= score.target && score.ratio < score.target ? (
-                <div className="p-2 rounded bg-status-green-light text-status-green text-xs">
-                  ✓ This scenario brings you to compliance!
-                </div>
+                <div className="p-2 rounded bg-status-green-light text-status-green text-xs">✓ This scenario brings you to compliance!</div>
               ) : null}
             </CardContent>
           </Card>
