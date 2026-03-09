@@ -120,6 +120,7 @@ export function AppShell() {
       <NotificationDrawer
         open={notificationDrawerOpen}
         onClose={() => setNotificationDrawerOpen(false)}
+        onUnreadCountChange={handleUnreadCountChange}
       />
     </div>
   );
