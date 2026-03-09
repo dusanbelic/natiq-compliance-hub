@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,7 @@ import { SwipeableNotification } from './SwipeableNotification';
 interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
 const TYPE_ICONS: Record<NotificationType, typeof AlertTriangle> = {
@@ -42,7 +43,7 @@ interface NotificationItem {
   created_at: string;
 }
 
-export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
+export function NotificationDrawer({ open, onClose, onUnreadCountChange }: NotificationDrawerProps) {
   const navigate = useNavigate();
   const { isDemoMode } = useAuth();
   const { t, isRTL } = useLanguage();
@@ -128,6 +129,10 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   }));
   const unreadNotifications = effectiveNotifications.filter((n) => !n.read);
   const readNotifications = effectiveNotifications.filter((n) => n.read);
+
+  useEffect(() => {
+    onUnreadCountChange?.(unreadNotifications.length);
+  }, [unreadNotifications.length, onUnreadCountChange]);
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>

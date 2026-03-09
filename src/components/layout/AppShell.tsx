@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEntity } from '@/contexts/EntityContext';
@@ -28,12 +28,18 @@ export function AppShell() {
   // Use live notifications when authenticated, mock when in demo
   const { data: liveNotifications } = useNotifications();
 
-  const unreadCount = useMemo(() => {
+  const initialUnreadCount = useMemo(() => {
     if (isDemoMode) {
       return MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
     }
     return (liveNotifications || []).filter((n) => !n.read).length;
   }, [isDemoMode, liveNotifications]);
+
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
+
+  const handleUnreadCountChange = useCallback((count: number) => {
+    setUnreadCount(count);
+  }, []);
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
 
@@ -114,6 +120,7 @@ export function AppShell() {
       <NotificationDrawer
         open={notificationDrawerOpen}
         onClose={() => setNotificationDrawerOpen(false)}
+        onUnreadCountChange={handleUnreadCountChange}
       />
     </div>
   );
