@@ -68,25 +68,47 @@
   }
 
   .dark {
-    --background: 222 47% 8%;
-    --foreground: 214 32% 96%;
-    --card: 222 47% 11%;
-    --card-foreground: 214 32% 96%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 214 32% 96%;
-    --primary: 180 79% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 211 54% 30%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 215 20% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 180 40% 20%;
-    --accent-foreground: 180 79% 60%;
-    --destructive: 0 73% 45%;
+    --background: 222 47% 7%;
+    --foreground: 210 40% 92%;
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 92%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 40% 92%;
+    --primary: 180 70% 42%;
+    --primary-foreground: 222 47% 7%;
+    --secondary: 211 50% 28%;
+    --secondary-foreground: 210 40% 92%;
+    --muted: 215 25% 16%;
+    --muted-foreground: 215 20% 60%;
+    --accent: 180 35% 16%;
+    --accent-foreground: 180 70% 55%;
+    --destructive: 0 63% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 215 20% 20%;
-    --input: 215 20% 20%;
-    --ring: 180 79% 40%;
+    --border: 215 20% 18%;
+    --input: 215 20% 18%;
+    --ring: 180 70% 42%;
+
+    /* ─── NatIQ Brand Colors (dark) ─── */
+    --navy: 211 54% 30%;
+    --navy-light: 212 46% 35%;
+    --teal: 180 70% 42%;
+    --teal-light: 180 30% 15%;
+    --amber: 37 92% 50%;
+    --amber-light: 37 40% 15%;
+    --status-red: 0 73% 52%;
+    --status-red-light: 0 40% 15%;
+    --status-green: 161 80% 38%;
+    --status-green-light: 161 30% 15%;
+
+    /* ─── Sidebar (dark) ─── */
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 85%;
+    --sidebar-primary: 180 70% 42%;
+    --sidebar-primary-foreground: 222 47% 7%;
+    --sidebar-accent: 215 25% 14%;
+    --sidebar-accent-foreground: 210 40% 85%;
+    --sidebar-border: 215 20% 16%;
+    --sidebar-ring: 180 70% 42%;
   }
 }
 

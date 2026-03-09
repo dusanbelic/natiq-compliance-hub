@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -10,24 +10,44 @@ import { EntityProvider } from '@/contexts/EntityContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { AppShell } from '@/components/layout/AppShell';
-import { AIAssistant } from '@/components/ai/AIAssistant';
 
-// Pages
+// Eager-load critical pages
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
-import ResetPassword from '@/pages/ResetPassword';
-import Dashboard from '@/pages/Dashboard';
-import Compliance from '@/pages/Compliance';
-import Forecast from '@/pages/Forecast';
-import Recommendations from '@/pages/Recommendations';
-import Employees from '@/pages/Employees';
-import Regulatory from '@/pages/Regulatory';
-import Reports from '@/pages/Reports';
-import Settings from '@/pages/Settings';
-import Onboarding from '@/pages/Onboarding';
-import NotFound from '@/pages/NotFound';
+import Landing from '@/pages/Landing';
 
-const queryClient = new QueryClient();
+// Lazy-load everything else
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Compliance = lazy(() => import('@/pages/Compliance'));
+const Forecast = lazy(() => import('@/pages/Forecast'));
+const Recommendations = lazy(() => import('@/pages/Recommendations'));
+const Employees = lazy(() => import('@/pages/Employees'));
+const Regulatory = lazy(() => import('@/pages/Regulatory'));
+const Reports = lazy(() => import('@/pages/Reports'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const Onboarding = lazy(() => import('@/pages/Onboarding'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
+const AIAssistant = lazy(() => import('@/components/ai/AIAssistant').then(m => ({ default: m.AIAssistant })));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 min
+      gcTime: 10 * 60 * 1000, // 10 min
+    },
+  },
+});
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[200px]">
+      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center animate-pulse">
+        <span className="text-primary-foreground font-jetbrains font-bold text-xs">N</span>
+      </div>
+    </div>
+  );
+}
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -84,9 +104,14 @@ function AppRoutes() {
   const { user, isDemoMode } = useAuth();
 
   return (
-    <>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
-        {/* Public routes */}
+        {/* Public landing page */}
+        <Route path="/" element={
+          user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Landing />
+        } />
+
+        {/* Auth routes */}
         <Route path="/login" element={
           user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Login />
         } />
@@ -105,7 +130,6 @@ function AppRoutes() {
             </EntityProvider>
           </ProtectedRoute>
         }>
-          <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/forecast" element={<Forecast />} />
@@ -131,7 +155,7 @@ function AppRoutes() {
       
       {/* AI Assistant - shown on protected routes */}
       {(user || isDemoMode) && <AIAssistant />}
-    </>
+    </Suspense>
   );
 }
 

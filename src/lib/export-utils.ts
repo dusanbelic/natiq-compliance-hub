@@ -105,81 +105,125 @@ export function exportEmployeesCSV(employees: Employee[], entityName: string) {
   downloadBlob(blob, `employees_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
 }
 
-// ─── Compliance Certificate PDF ─────────────────────────────────────────────
+// ─── Compliance Certificate PDF (Formal) ────────────────────────────────────
 
 export function exportCompliancePDF(data: DashboardData) {
   const { entity, score } = data;
   const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-
   const doc = new jsPDF();
-  let y = addHeader(doc, 'NatIQ Compliance Certificate', `Generated on ${now}`);
-
-  // Entity info table
-  y = addSectionTitle(doc, 'Entity Information', y);
-  autoTable(doc, {
-    startY: y,
-    margin: { left: 20, right: 20 },
-    theme: 'plain',
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 50 } },
-    body: [
-      ['Entity Name', entity.name],
-      ['Country', entity.country],
-      ['Industry', entity.industry_sector || 'N/A'],
-      ['Programme', score.program],
-    ],
-  });
-
-  y = (doc as any).lastAutoTable.finalY + 10;
-
-  // Compliance score
-  const statusColor = score.status === 'COMPLIANT' ? COLORS.compliant : score.status === 'AT_RISK' ? COLORS.atRisk : COLORS.nonCompliant;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(42);
-  doc.setTextColor(...COLORS.primary);
   const pageW = doc.internal.pageSize.getWidth();
-  doc.text(`${score.ratio.toFixed(1)}%`, pageW / 2, y + 14, { align: 'center' });
+  const pageH = doc.internal.pageSize.getHeight();
 
-  // Status badge
+  // Decorative border
+  doc.setDrawColor(...COLORS.primary);
+  doc.setLineWidth(2);
+  doc.rect(10, 10, pageW - 20, pageH - 20);
+  doc.setLineWidth(0.5);
+  doc.rect(13, 13, pageW - 26, pageH - 26);
+
+  // Certificate header
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.setTextColor(...statusColor);
-  doc.text(`${score.status} — ${score.band}`, pageW / 2, y + 24, { align: 'center' });
+  doc.setTextColor(...COLORS.primary);
+  doc.text('NatIQ', pageW / 2, 30, { align: 'center' });
 
-  y += 34;
+  doc.setFontSize(26);
+  doc.setTextColor(...COLORS.dark);
+  doc.text('COMPLIANCE CERTIFICATE', pageW / 2, 45, { align: 'center' });
 
-  // Workforce breakdown
-  y = addSectionTitle(doc, 'Workforce Breakdown', y);
+  // Decorative line
+  doc.setDrawColor(...COLORS.primary);
+  doc.setLineWidth(1);
+  doc.line(60, 50, pageW - 60, 50);
+  doc.setLineWidth(0.3);
+  doc.line(50, 53, pageW - 50, 53);
+
+  // Certificate number & date
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(...COLORS.muted);
+  const certNo = `CERT-${entity.country}-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+  doc.text(`Certificate No: ${certNo}`, pageW / 2, 62, { align: 'center' });
+  doc.text(`Date of Issue: ${now}`, pageW / 2, 68, { align: 'center' });
+
+  // Main body
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...COLORS.text);
+  doc.text('This is to certify that', pageW / 2, 85, { align: 'center' });
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...COLORS.dark);
+  doc.text(entity.name, pageW / 2, 97, { align: 'center' });
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...COLORS.text);
+  const programLine = `operating in ${entity.country === 'SA' ? 'Saudi Arabia' : entity.country === 'AE' ? 'United Arab Emirates' : entity.country === 'QA' ? 'Qatar' : 'Oman'}`;
+  doc.text(programLine, pageW / 2, 107, { align: 'center' });
+  doc.text(`under the ${score.program} programme has been assessed and`, pageW / 2, 114, { align: 'center' });
+  doc.text('determined to have the following compliance status:', pageW / 2, 121, { align: 'center' });
+
+  // Status box
+  const statusColor = score.status === 'COMPLIANT' ? COLORS.compliant : score.status === 'AT_RISK' ? COLORS.atRisk : COLORS.nonCompliant;
+  doc.setFillColor(...statusColor);
+  doc.roundedRect(pageW / 2 - 40, 130, 80, 12, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(255, 255, 255);
+  doc.text(score.status.replace('_', ' '), pageW / 2, 138, { align: 'center' });
+
+  // Large ratio
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(48);
+  doc.setTextColor(...COLORS.primary);
+  doc.text(`${score.ratio.toFixed(1)}%`, pageW / 2, 170, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setTextColor(...COLORS.muted);
+  doc.text('Nationalization Ratio', pageW / 2, 178, { align: 'center' });
+
+  // Details table
   autoTable(doc, {
-    startY: y,
-    margin: { left: 20, right: 20 },
-    head: [['Category', 'Count']],
+    startY: 188,
+    margin: { left: 40, right: 40 },
+    theme: 'plain',
+    styles: { fontSize: 10, cellPadding: 5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 55, textColor: COLORS.dark }, 1: { halign: 'right' } },
     body: [
-      ['Total Qualifying Workforce', String(score.qualifying_total)],
+      ['Band Classification', score.band],
+      ['Target Ratio', `${score.target}%`],
+      ['Total Workforce', String(score.qualifying_total)],
       ['Qualifying Nationals', String(score.qualifying_nationals)],
-      ['Full-time Nationals', String(score.nationals_full_time)],
-      ['Part-time Nationals', String(score.nationals_part_time)],
-      ['Contract Nationals (excluded)', String(score.nationals_contract)],
-      ['Target', `${score.target}%`],
-      ['Current Ratio', `${score.ratio.toFixed(1)}%`],
+      ['Industry Sector', entity.industry_sector || 'General'],
     ],
-    headStyles: { fillColor: COLORS.primary, fontSize: 10 },
-    styles: { fontSize: 10, cellPadding: 4 },
   });
 
-  y = (doc as any).lastAutoTable.finalY + 10;
+  const tableEndY = (doc as any).lastAutoTable.finalY + 15;
 
-  // Department breakdown
-  y = addSectionTitle(doc, 'Department Breakdown', y);
-  autoTable(doc, {
-    startY: y,
-    margin: { left: 20, right: 20 },
-    head: [['Department', 'Total', 'Nationals', 'Ratio']],
-    body: data.department_breakdown.map(d => [d.dept, String(d.total), String(d.nationals), `${d.ratio.toFixed(1)}%`]),
-    headStyles: { fillColor: COLORS.primary, fontSize: 10 },
-    styles: { fontSize: 10, cellPadding: 4 },
-  });
+  // Signature area
+  doc.setDrawColor(...COLORS.muted);
+  doc.setLineWidth(0.5);
 
-  addFooter(doc);
+  // Left signature
+  doc.line(30, tableEndY + 15, 85, tableEndY + 15);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...COLORS.muted);
+  doc.text('Authorized Signatory', 57, tableEndY + 21, { align: 'center' });
+
+  // Right signature
+  doc.line(pageW - 85, tableEndY + 15, pageW - 30, tableEndY + 15);
+  doc.text('Company Seal', pageW - 57, tableEndY + 21, { align: 'center' });
+
+  // Digital verification note
+  doc.setFontSize(7);
+  doc.setTextColor(...COLORS.muted);
+  doc.text(`Digital Certificate ID: ${certNo}`, pageW / 2, tableEndY + 35, { align: 'center' });
+  doc.text('This certificate is generated by NatIQ and is for informational purposes only.', pageW / 2, tableEndY + 40, { align: 'center' });
+  doc.text('It does not constitute official government documentation or legal compliance certification.', pageW / 2, tableEndY + 45, { align: 'center' });
+
   doc.save(`compliance_certificate_${entity.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
