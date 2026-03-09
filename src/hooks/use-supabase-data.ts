@@ -303,7 +303,6 @@ export function useCompany() {
 
 // ─── Audit Logs ─────────────────────────────────────────────────────────────
 // Note: audit_logs table is created via migration and triggers are set up
-// The hook will work after the migration runs
 
 export interface AuditLog {
   id: string;
@@ -322,21 +321,18 @@ export function useAuditLogs(entityId?: string) {
 
   return useQuery({
     queryKey: ['audit_logs', entityId],
-    queryFn: async () => {
-      // Using raw query since audit_logs may not be in types yet
-      const baseQuery = supabase.rpc('get_audit_logs' as any, { p_entity_id: entityId || null });
-      const { data, error } = await baseQuery;
+    queryFn: async (): Promise<AuditLog[]> => {
+      // Since audit_logs isn't in the generated types yet, we use a raw SQL approach
+      const { data, error } = await supabase.rpc('get_audit_logs' as never, { 
+        p_entity_id: entityId || null 
+      });
+      
       if (error) {
-        // Fallback if RPC doesn't exist - try direct table access
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('audit_logs' as any)
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(100);
-        if (fallbackError) return [];
-        return fallbackData as AuditLog[];
+        // If RPC doesn't exist, return empty array
+        console.warn('Audit logs not available:', error.message);
+        return [];
       }
-      return data as AuditLog[];
+      return (data || []) as AuditLog[];
     },
     enabled: !isDemoMode,
   });
