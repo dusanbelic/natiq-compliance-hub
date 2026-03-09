@@ -31,6 +31,7 @@ const INVOICES = [
 
 export default function Settings() {
   const { isDemoMode, user } = useAuth();
+  const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
 
   // Live data hooks
