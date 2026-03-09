@@ -239,7 +239,7 @@ export default function Onboarding() {
                     </TabsContent>
 
                     <TabsContent value="hrms" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
                           { name: 'Qiwa API', active: true },
                           { name: 'SAP SuccessFactors', active: false },
@@ -248,11 +248,11 @@ export default function Onboarding() {
                           { name: 'Bayzat', active: false },
                           { name: 'Custom API', active: false },
                         ].map((sys) => (
-                          <div key={sys.name} className={`p-4 rounded-lg border text-center ${sys.active ? 'border-primary bg-accent' : 'opacity-50'}`}>
-                            <div className="w-10 h-10 rounded bg-muted mx-auto mb-2 flex items-center justify-center">
-                              <Database className="w-5 h-5" />
+                          <div key={sys.name} className={`p-3 sm:p-4 rounded-lg border text-center ${sys.active ? 'border-primary bg-accent' : 'opacity-50'}`}>
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-muted mx-auto mb-2 flex items-center justify-center">
+                              <Database className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
-                            <p className="text-sm font-medium">{sys.name}</p>
+                            <p className="text-xs sm:text-sm font-medium">{sys.name}</p>
                             {sys.active ? (
                               <Button size="sm" className="mt-2">Connect</Button>
                             ) : (
