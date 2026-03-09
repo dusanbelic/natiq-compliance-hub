@@ -108,7 +108,7 @@ export default function Reports() {
           ? exportForecastPDF(dashboardData, forecastData)
           : exportEmployeesXLSX(employees, selectedEntity.name);
       } else if (id === 4) {
-        format === 'excel' ? exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryCSV(regulatoryChanges);
+        format === 'excel' ? exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryPDF(regulatoryChanges);
       }
       toast.success(`${title} (${format.toUpperCase()}) downloaded`);
     } catch {
