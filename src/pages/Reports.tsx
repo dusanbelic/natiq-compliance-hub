@@ -175,7 +175,11 @@ export default function Reports() {
           </CardHeader>
           <CardContent>
             {auditLoading ? (
-              <LoadingSkeleton variant="card" count={3} />
+              <div className="space-y-2">
+                <CardSkeleton className="h-10" />
+                <CardSkeleton className="h-10" />
+                <CardSkeleton className="h-10" />
+              </div>
             ) : !auditLogs || auditLogs.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">No audit log entries yet.</p>
             ) : (
