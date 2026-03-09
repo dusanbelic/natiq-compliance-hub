@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -6,16 +6,38 @@ import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { MOCK_REGULATORY_CHANGES, COUNTRY_FLAGS, MOCK_DASHBOARD_DATA } from '@/lib/mockData';
 import { ImpactBadge } from '@/components/PriorityBadge';
-import { ExternalLink, ChevronDown, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ExternalLink, ChevronDown, AlertTriangle, CheckCircle, FileText } from 'lucide-react';
 import { useEntity } from '@/contexts/EntityContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { useNavigate } from 'react-router-dom';
+import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
+import { EmptyState } from '@/components/ui/LoadingSkeleton';
 import type { Country, RegulatoryChange } from '@/types/database';
+import type { Tables } from '@/integrations/supabase/types';
 
 const FILTERS: (Country | 'ALL')[] = ['ALL', 'SA', 'AE', 'QA', 'OM'];
 
+// Normalize DB row to app RegulatoryChange type
+function toRegulatoryChange(row: Tables<'regulatory_changes'>): RegulatoryChange {
+  return {
+    id: row.id,
+    country: row.country as Country,
+    program: row.program,
+    headline: row.headline,
+    summary: row.summary ?? '',
+    effective_date: row.effective_date ?? '',
+    source_url: row.source_url ?? undefined,
+    impact_level: (row.impact_level as RegulatoryChange['impact_level']) ?? 'LOW',
+    change_type: (row.change_type as RegulatoryChange['change_type']) ?? undefined,
+    affects_sectors: row.affects_sectors ?? null,
+    detected_at: row.detected_at ?? '',
+  };
+}
+
 function ImpactAnalysis({ change, entityData }: { change: RegulatoryChange; entityData: typeof MOCK_DASHBOARD_DATA[string] | null }) {
   const navigate = useNavigate();
-  
+
   if (!entityData) {
     return (
       <div className="p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
@@ -26,15 +48,13 @@ function ImpactAnalysis({ change, entityData }: { change: RegulatoryChange; enti
 
   const { score } = entityData;
   const isAffected = change.affects_sectors === null || change.affects_sectors.includes(entityData.entity.industry_sector || '');
-  
-  // Simulate impact based on change type
+
   let impactText = '';
   let gap = 0;
   let isCompliant = score.ratio >= score.target;
 
   if (change.change_type === 'TARGET_INCREASE') {
-    // Simulate new higher target
-    const newTarget = score.target + 3; // Example: 3% increase
+    const newTarget = score.target + 3;
     gap = newTarget - score.ratio;
     isCompliant = score.ratio >= newTarget;
     impactText = `If this change applies to your sector, the new target would be ${newTarget.toFixed(1)}%. Your current ratio is ${score.ratio.toFixed(1)}%.`;
@@ -89,16 +109,26 @@ function ImpactAnalysis({ change, entityData }: { change: RegulatoryChange; enti
 }
 
 export default function Regulatory() {
-  const { selectedEntity } = useEntity();
+  const { selectedEntity, dashboardData } = useEntity();
+  const { isDemoMode } = useAuth();
+  const { data: liveChanges, isLoading } = useRegulatoryChanges();
   const [filter, setFilter] = useState<Country | 'ALL'>('ALL');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [inAppAlerts, setInAppAlerts] = useState(true);
 
-  const entityData = MOCK_DASHBOARD_DATA[selectedEntity.id];
-  const filtered = filter === 'ALL' 
-    ? MOCK_REGULATORY_CHANGES 
-    : MOCK_REGULATORY_CHANGES.filter((c) => c.country === filter);
+  const entityData = isDemoMode
+    ? MOCK_DASHBOARD_DATA[selectedEntity.id]
+    : dashboardData;
+
+  const changes: RegulatoryChange[] = useMemo(() => {
+    if (isDemoMode) return MOCK_REGULATORY_CHANGES;
+    return (liveChanges || []).map(toRegulatoryChange);
+  }, [isDemoMode, liveChanges]);
+
+  const filtered = filter === 'ALL'
+    ? changes
+    : changes.filter((c) => c.country === filter);
 
   const toggleExpand = (id: string) => {
     const next = new Set(expandedIds);
@@ -121,47 +151,61 @@ export default function Regulatory() {
             ))}
           </div>
 
-          <div className="space-y-4">
-            {filtered.map((change) => (
-              <Card key={change.id} className="shadow-card overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">{COUNTRY_FLAGS[change.country]}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <ImpactBadge impact={change.impact_level || 'LOW'} />
-                        <span className="text-xs text-muted-foreground">{change.effective_date}</span>
-                      </div>
-                      <h3 className="font-semibold mb-1">{change.headline}</h3>
-                      <p className="text-sm text-muted-foreground">{change.summary}</p>
-                      
-                      <div className="flex gap-2 mt-3">
-                        <Collapsible open={expandedIds.has(change.id)} onOpenChange={() => toggleExpand(change.id)}>
-                          <CollapsibleTrigger asChild>
-                            <Button size="sm" variant="outline">
-                              View Impact
-                              <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedIds.has(change.id) ? 'rotate-180' : ''}`} />
+          {isLoading && !isDemoMode ? (
+            <div className="space-y-4">
+              <CardSkeleton className="h-40" />
+              <CardSkeleton className="h-40" />
+              <CardSkeleton className="h-40" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              icon={FileText}
+              title="No regulatory changes"
+              description={filter === 'ALL' ? 'No regulatory changes have been detected yet.' : `No regulatory changes found for ${filter}.`}
+            />
+          ) : (
+            <div className="space-y-4">
+              {filtered.map((change) => (
+                <Card key={change.id} className="shadow-card overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{COUNTRY_FLAGS[change.country]}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <ImpactBadge impact={change.impact_level || 'LOW'} />
+                          <span className="text-xs text-muted-foreground">{change.effective_date}</span>
+                        </div>
+                        <h3 className="font-semibold mb-1">{change.headline}</h3>
+                        <p className="text-sm text-muted-foreground">{change.summary}</p>
+
+                        <div className="flex gap-2 mt-3">
+                          <Collapsible open={expandedIds.has(change.id)} onOpenChange={() => toggleExpand(change.id)}>
+                            <CollapsibleTrigger asChild>
+                              <Button size="sm" variant="outline">
+                                View Impact
+                                <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedIds.has(change.id) ? 'rotate-180' : ''}`} />
+                              </Button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="mt-3">
+                              <ImpactAnalysis change={change} entityData={entityData} />
+                            </CollapsibleContent>
+                          </Collapsible>
+
+                          {change.source_url && (
+                            <Button size="sm" variant="ghost" asChild>
+                              <a href={change.source_url} target="_blank" rel="noopener noreferrer">
+                                Source <ExternalLink className="w-3 h-3 ml-1" />
+                              </a>
                             </Button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="mt-3">
-                            <ImpactAnalysis change={change} entityData={entityData} />
-                          </CollapsibleContent>
-                        </Collapsible>
-                        
-                        {change.source_url && (
-                          <Button size="sm" variant="ghost" asChild>
-                            <a href={change.source_url} target="_blank" rel="noopener noreferrer">
-                              Source <ExternalLink className="w-3 h-3 ml-1" />
-                            </a>
-                          </Button>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Regulatory Calendar */}
           <Card className="shadow-card">
