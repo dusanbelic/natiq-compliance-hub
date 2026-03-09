@@ -456,6 +456,53 @@ export type Database = {
         }
         Relationships: []
       }
+      report_schedules: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          entity_id: string
+          frequency: string
+          id: string
+          last_sent_at: string | null
+          recipients: string[]
+          report_types: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          entity_id: string
+          frequency?: string
+          id?: string
+          last_sent_at?: string | null
+          recipients?: string[]
+          report_types?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          entity_id?: string
+          frequency?: string
+          id?: string
+          last_sent_at?: string | null
+          recipients?: string[]
+          report_types?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_schedules_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           company_id: string | null

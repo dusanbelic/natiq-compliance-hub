@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/lib/mockData';
 import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportRegulatoryPDF, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX, exportAuditLogPDF, exportAuditLogXLSX } from '@/lib/export-utils';
 import { useAuditLogs, type AuditLog, useForecasts, useRegulatoryChanges } from '@/hooks/use-supabase-data';
+import { useReportSchedule, useUpsertReportSchedule } from '@/hooks/use-report-schedules';
 import { getRelativeTime } from '@/lib/mockData';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import type { Employee, RegulatoryChange } from '@/types/database';
@@ -63,12 +64,24 @@ export default function Reports() {
   const { selectedEntity, dashboardData, employeesByEntity } = useEntity();
   const { isDemoMode } = useAuth();
   const [generating, setGenerating] = useState<number | null>(null);
-  const [scheduledEnabled, setScheduledEnabled] = useState(false);
-  const [scheduleFreq, setScheduleFreq] = useState('weekly');
-  const [emails, setEmails] = useState(['khalid@acmegulf.com']);
   const [newEmail, setNewEmail] = useState('');
+  const [localEnabled, setLocalEnabled] = useState<boolean | null>(null);
+  const [localFreq, setLocalFreq] = useState<string | null>(null);
+  const [localEmails, setLocalEmails] = useState<string[] | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { data: auditLogs, isLoading: auditLoading } = useAuditLogs(selectedEntity.id);
+  const { data: schedule, isLoading: scheduleLoading } = useReportSchedule(selectedEntity.id);
+  const upsertSchedule = useUpsertReportSchedule();
+
+  // Derive display values from saved schedule or local overrides
+  const scheduledEnabled = localEnabled ?? schedule?.enabled ?? false;
+  const scheduleFreq = localFreq ?? schedule?.frequency ?? 'weekly';
+  const emails = localEmails ?? schedule?.recipients ?? [];
+
+  const setScheduledEnabled = (v: boolean) => setLocalEnabled(v);
+  const setScheduleFreq = (v: string) => setLocalFreq(v);
+  const setEmails = (v: string[]) => setLocalEmails(v);
   const { data: forecastRow } = useForecasts(selectedEntity.id);
   const { data: regRows, isLoading: regLoading } = useRegulatoryChanges();
 
@@ -286,7 +299,35 @@ export default function Reports() {
                 </div>
               </div>
 
-              <Button onClick={() => toast.success('Schedule saved')}>Save Schedule</Button>
+              {schedule?.last_sent_at && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Last sent: {new Date(schedule.last_sent_at).toLocaleDateString()}
+                </p>
+              )}
+              <Button
+                disabled={saving || isDemoMode}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await upsertSchedule.mutateAsync({
+                      entity_id: selectedEntity.id,
+                      enabled: scheduledEnabled,
+                      frequency: scheduleFreq,
+                      recipients: emails,
+                    });
+                    setLocalEnabled(null);
+                    setLocalFreq(null);
+                    setLocalEmails(null);
+                    toast.success('Schedule saved');
+                  } catch {
+                    toast.error('Failed to save schedule');
+                  }
+                  setSaving(false);
+                }}
+              >
+                {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
+                Save Schedule
+              </Button>
             </div>
           )}
         </CardContent>
