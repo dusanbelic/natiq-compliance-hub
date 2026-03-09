@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEntity } from '@/contexts/EntityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   COUNTRY_FLAGS,
   MOCK_RECOMMENDATIONS,
@@ -11,12 +12,14 @@ import {
   formatPercent,
   CHART_COLORS,
 } from '@/lib/mockData';
+import { useRecommendations, useRegulatoryChanges, useForecasts } from '@/hooks/use-supabase-data';
 import { ComplianceRing } from '@/components/ComplianceRing';
 import { StatusBadge, BandBadge } from '@/components/StatusBadge';
 import { SimpleComplianceBar } from '@/components/ComplianceBandBar';
 import { PriorityBadge, ComplianceGainChip } from '@/components/PriorityBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   LineChart,
   Line,
@@ -41,20 +44,59 @@ import {
   Lightbulb,
   RefreshCw,
 } from 'lucide-react';
+import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { selectedEntity, dashboardData, entities } = useEntity();
+  const { selectedEntity, dashboardData, entities, loading, allScores } = useEntity();
+  const { isDemoMode } = useAuth();
   const { t } = useLanguage();
   const { score, compliance_history, department_breakdown } = dashboardData;
 
-  const recommendations = MOCK_RECOMMENDATIONS[selectedEntity.id] || [];
+  // Live data hooks (disabled in demo mode via the hooks themselves)
+  const { data: liveRecommendations } = useRecommendations(selectedEntity?.id);
+  const { data: liveRegChanges } = useRegulatoryChanges();
+  const { data: liveForecast } = useForecasts(selectedEntity?.id);
+
+  // Choose between live and mock data
+  const recommendations = isDemoMode
+    ? (MOCK_RECOMMENDATIONS[selectedEntity?.id] || [])
+    : (liveRecommendations || []);
   const topRecommendations = recommendations.slice(0, 3);
-  const forecastData = MOCK_FORECAST_DATA[selectedEntity.id];
-  const recentRegChanges = MOCK_REGULATORY_CHANGES.slice(0, 3);
+
+  const recentRegChanges = isDemoMode
+    ? MOCK_REGULATORY_CHANGES.slice(0, 3)
+    : (liveRegChanges || []).slice(0, 3);
+
+  const forecastData = isDemoMode
+    ? MOCK_FORECAST_DATA[selectedEntity?.id]
+    : liveForecast
+      ? {
+          entity_id: liveForecast.entity_id,
+          target: score.target,
+          data: [],
+          projected_30d: Number(liveForecast.projected_ratio_30d) || 0,
+          projected_60d: Number(liveForecast.projected_ratio_60d) || 0,
+          projected_90d: Number(liveForecast.projected_ratio_90d) || 0,
+          risk_date: liveForecast.risk_date,
+          confidence: (liveForecast.confidence as 'HIGH' | 'MEDIUM' | 'LOW') || 'MEDIUM',
+        }
+      : null;
 
   const trendIcon = score.trend >= 0 ? TrendingUp : TrendingDown;
   const trendColor = score.trend >= 0 ? 'text-status-green' : 'text-status-red';
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-32 w-full" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <Skeleton className="lg:col-span-3 h-80" />
+          <Skeleton className="lg:col-span-2 h-80" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -208,32 +250,40 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={forecastData?.data || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
-                    <YAxis domain={[0, 'auto']} tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
-                    <Tooltip />
-                    <ReferenceLine y={forecastData?.target} stroke={CHART_COLORS.red} strokeDasharray="5 5" />
-                    <Line
-                      type="monotone"
-                      dataKey="historical"
-                      stroke={CHART_COLORS.teal}
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="projected"
-                      stroke={CHART_COLORS.navy}
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              {forecastData?.data && forecastData.data.length > 0 ? (
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={forecastData.data}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
+                      <YAxis domain={[0, 'auto']} tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
+                      <Tooltip />
+                      <ReferenceLine y={forecastData.target} stroke={CHART_COLORS.red} strokeDasharray="5 5" />
+                      <Line type="monotone" dataKey="historical" stroke={CHART_COLORS.teal} strokeWidth={2} dot={false} />
+                      <Line type="monotone" dataKey="projected" stroke={CHART_COLORS.navy} strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : forecastData ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-3 rounded-lg bg-muted">
+                      <p className="text-xs text-muted-foreground">30-day</p>
+                      <p className="font-jetbrains font-bold text-lg">{formatPercent(forecastData.projected_30d)}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted">
+                      <p className="text-xs text-muted-foreground">60-day</p>
+                      <p className="font-jetbrains font-bold text-lg">{formatPercent(forecastData.projected_60d)}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted">
+                      <p className="text-xs text-muted-foreground">90-day</p>
+                      <p className="font-jetbrains font-bold text-lg">{formatPercent(forecastData.projected_90d)}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">No forecast data available</p>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -252,13 +302,15 @@ export default function Dashboard() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recentRegChanges.map((change) => (
+              {recentRegChanges.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No recent changes</p>
+              ) : recentRegChanges.map((change) => (
                 <div
                   key={change.id}
                   className="p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors"
                 >
                   <div className="flex items-start gap-2">
-                    <span className="text-lg">{COUNTRY_FLAGS[change.country]}</span>
+                    <span className="text-lg">{COUNTRY_FLAGS[change.country as keyof typeof COUNTRY_FLAGS]}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span
@@ -293,7 +345,9 @@ export default function Dashboard() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">
-              {topRecommendations.map((rec) => (
+              {topRecommendations.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No recommendations</p>
+              ) : topRecommendations.map((rec) => (
                 <div
                   key={rec.id}
                   className="p-3 rounded-lg border border-border hover:bg-muted/50 cursor-pointer transition-colors"
@@ -321,16 +375,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={department_breakdown} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
-                  <XAxis type="number" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
-                  <YAxis type="category" dataKey="dept" tick={{ fontSize: 11 }} width={80} stroke={CHART_COLORS.slate400} />
-                  <Tooltip />
-                  <Bar dataKey="nationals" stackId="a" fill={CHART_COLORS.teal} name="Nationals" />
-                  <Bar dataKey="expats" stackId="a" fill={CHART_COLORS.slate300} name="Expats" />
-                </BarChart>
-              </ResponsiveContainer>
+              {department_breakdown.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={department_breakdown} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
+                    <XAxis type="number" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
+                    <YAxis type="category" dataKey="dept" tick={{ fontSize: 11 }} width={80} stroke={CHART_COLORS.slate400} />
+                    <Tooltip />
+                    <Bar dataKey="nationals" stackId="a" fill={CHART_COLORS.teal} name="Nationals" />
+                    <Bar dataKey="expats" stackId="a" fill={CHART_COLORS.slate300} name="Expats" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-16">No department data</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -342,23 +400,20 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={compliance_history}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
-                  <YAxis tick={{ fontSize: 11 }} domain={[0, 'auto']} stroke={CHART_COLORS.slate400} />
-                  <Tooltip />
-                  <ReferenceLine y={score.target} stroke={CHART_COLORS.red} strokeDasharray="5 5" label="Min Target" />
-                  <Line
-                    type="monotone"
-                    dataKey="ratio"
-                    stroke={CHART_COLORS.teal}
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: CHART_COLORS.teal }}
-                    name="Ratio"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {compliance_history.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={compliance_history}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_COLORS.slate300} />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} stroke={CHART_COLORS.slate400} />
+                    <YAxis tick={{ fontSize: 11 }} domain={[0, 'auto']} stroke={CHART_COLORS.slate400} />
+                    <Tooltip />
+                    <ReferenceLine y={score.target} stroke={CHART_COLORS.red} strokeDasharray="5 5" label="Min Target" />
+                    <Line type="monotone" dataKey="ratio" stroke={CHART_COLORS.teal} strokeWidth={2} dot={{ r: 4, fill: CHART_COLORS.teal }} name="Ratio" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-16">No history data</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -371,12 +426,12 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-3">
               {entities.map((entity) => {
-                const data = dashboardData.entity.id === entity.id ? dashboardData : null;
-                const entityScore = data?.score || {
-                  ratio: 0,
-                  status: 'UNKNOWN' as const,
-                  band: 'UNKNOWN',
-                };
+                const entityScore = isDemoMode
+                  ? (dashboardData.entity.id === entity.id
+                    ? dashboardData.score
+                    : { ratio: 0, status: 'UNKNOWN' as ComplianceStatus, band: 'UNKNOWN' })
+                  : (allScores[entity.id] || { ratio: 0, status: 'UNKNOWN' as ComplianceStatus, band: 'UNKNOWN' });
+
                 return (
                   <div
                     key={entity.id}
