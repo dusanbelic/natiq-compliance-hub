@@ -188,8 +188,9 @@ export default function Employees() {
                       <td className="p-3 text-center">
                         {emp.counts_toward_quota ? <Check className="w-4 h-4 text-status-green mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" />}
                       </td>
-                      <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <AlertDialog>
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {canDeleteEmployees && (
+                          <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
