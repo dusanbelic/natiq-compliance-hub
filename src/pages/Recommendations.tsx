@@ -3,10 +3,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEntity } from '@/contexts/EntityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_RECOMMENDATIONS } from '@/lib/mockData';
+import { useRecommendations, useUpdateRecommendationStatus } from '@/hooks/use-supabase-data';
 import { PriorityBadge, EffortBadge, ComplianceGainChip } from '@/components/PriorityBadge';
 import { PostJobDialog } from '@/components/recommendations/PostJobDialog';
-import { EmptyState } from '@/components/ui/LoadingSkeleton';
+import { EmptyState, CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
 import { Lightbulb, Briefcase } from 'lucide-react';
 import type { Priority, RecommendationStatus, Recommendation } from '@/types/database';
@@ -15,13 +17,30 @@ type SortBy = 'priority' | 'impact' | 'effort';
 
 export default function Recommendations() {
   const { selectedEntity } = useEntity();
-  const recommendations = MOCK_RECOMMENDATIONS[selectedEntity.id] || [];
+  const { isDemoMode } = useAuth();
+  const { data: liveRecs, isLoading } = useRecommendations(selectedEntity.id);
+  const updateStatus = useUpdateRecommendationStatus();
+
+  const mockRecs = MOCK_RECOMMENDATIONS[selectedEntity.id] || [];
+  const recommendations: Recommendation[] = isDemoMode
+    ? mockRecs
+    : (liveRecs || []).map(r => ({
+        ...r,
+        priority: (r.priority ?? 'OPTIONAL') as Priority,
+        status: (r.status ?? 'OPEN') as RecommendationStatus,
+        effort_level: r.effort_level ?? undefined,
+        compliance_gain: r.compliance_gain ? Number(r.compliance_gain) : undefined,
+        action_type: r.action_type ?? undefined,
+        description: r.description ?? undefined,
+        impact_score: r.impact_score ?? undefined,
+      } as Recommendation));
+
   const [filter, setFilter] = useState<Priority | 'ALL' | 'DONE'>('ALL');
   const [sortBy, setSortBy] = useState<SortBy>('priority');
-  const [statuses, setStatuses] = useState<Record<string, RecommendationStatus>>({});
+  const [localStatuses, setLocalStatuses] = useState<Record<string, RecommendationStatus>>({});
   const [postJobRec, setPostJobRec] = useState<Recommendation | null>(null);
 
-  const getStatus = (id: string, original: RecommendationStatus) => statuses[id] || original;
+  const getStatus = (id: string, original: RecommendationStatus) => localStatuses[id] || original;
 
   const filtered = recommendations
     .filter((r) => {
@@ -43,29 +62,49 @@ export default function Recommendations() {
   const openRecs = recommendations.filter((r) => getStatus(r.id, r.status) === 'OPEN');
   const totalGain = openRecs.slice(0, 3).reduce((sum, r) => sum + (r.compliance_gain || 0), 0);
 
+  const persistStatus = (id: string, status: RecommendationStatus) => {
+    setLocalStatuses(prev => ({ ...prev, [id]: status }));
+    if (!isDemoMode) {
+      updateStatus.mutate({ id, status });
+    }
+  };
+
   const markDone = (id: string) => {
-    setStatuses({ ...statuses, [id]: 'DONE' });
+    persistStatus(id, 'DONE');
     toast.success('Action marked complete');
   };
 
   const markInProgress = (id: string) => {
-    setStatuses({ ...statuses, [id]: 'IN_PROGRESS' });
+    persistStatus(id, 'IN_PROGRESS');
     toast.info('Marked as in progress');
   };
 
-  const dismiss = (id: string, title: string) => {
-    setStatuses({ ...statuses, [id]: 'DISMISSED' });
+  const dismiss = (id: string) => {
+    persistStatus(id, 'DISMISSED');
     toast('Recommendation dismissed', {
       action: {
         label: 'Undo',
-        onClick: () => setStatuses(prev => {
-          const next = { ...prev };
-          delete next[id];
-          return next;
-        }),
+        onClick: () => {
+          setLocalStatuses(prev => { const next = { ...prev }; delete next[id]; return next; });
+          if (!isDemoMode) updateStatus.mutate({ id, status: 'OPEN' });
+        },
       },
     });
   };
+
+  const loading = !isDemoMode && isLoading;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <h1 className="font-sora font-bold text-2xl">Recommendations</h1>
+        <CardSkeleton className="h-16" />
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} className="h-32" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -75,7 +114,6 @@ export default function Recommendations() {
         </h1>
       </div>
 
-      {/* Impact Summary */}
       {openRecs.length > 0 && (
         <div className="p-4 rounded-lg bg-teal-light border border-primary/20">
           <p className="text-sm text-primary">
@@ -84,7 +122,6 @@ export default function Recommendations() {
         </div>
       )}
 
-      {/* Filters & Sort */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex gap-2 flex-wrap">
           {(['ALL', 'CRITICAL', 'IMPORTANT', 'OPTIONAL', 'DONE'] as const).map((f) => (
@@ -103,13 +140,8 @@ export default function Recommendations() {
         </Select>
       </div>
 
-      {/* Cards */}
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={Lightbulb}
-          title="No recommendations"
-          description="All caught up! Check back later for new compliance recommendations."
-        />
+        <EmptyState icon={Lightbulb} title="No recommendations" description="All caught up! Check back later for new compliance recommendations." />
       ) : (
         <div className="space-y-4">
           {filtered.map((rec) => {
@@ -141,7 +173,7 @@ export default function Recommendations() {
                         )}
                         <Button size="sm" onClick={() => markInProgress(rec.id)}>In Progress</Button>
                         <Button size="sm" variant="outline" onClick={() => markDone(rec.id)}>Mark Done</Button>
-                        <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => dismiss(rec.id, rec.title)}>Dismiss</Button>
+                        <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => dismiss(rec.id)}>Dismiss</Button>
                       </div>
                     )}
                     {status === 'IN_PROGRESS' && (
@@ -155,13 +187,7 @@ export default function Recommendations() {
         </div>
       )}
 
-      {/* Post Job Dialog */}
-      <PostJobDialog
-        open={!!postJobRec}
-        onClose={() => setPostJobRec(null)}
-        recommendation={postJobRec}
-        onPost={() => postJobRec && markInProgress(postJobRec.id)}
-      />
+      <PostJobDialog open={!!postJobRec} onClose={() => setPostJobRec(null)} recommendation={postJobRec} onPost={() => postJobRec && markInProgress(postJobRec.id)} />
     </div>
   );
 }
