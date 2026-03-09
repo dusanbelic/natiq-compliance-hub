@@ -154,17 +154,17 @@ export default function Onboarding() {
         </div>
       </header>
 
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-2xl">
           {/* Progress */}
-          <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
             {STEPS.map((s, i) => (
               <div key={s} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   {i < step ? <Check className="w-4 h-4" /> : i + 1}
                 </div>
-                <span className={`ml-2 text-sm ${i <= step ? 'text-foreground' : 'text-muted-foreground'}`}>{s}</span>
-                {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 mx-4 text-muted-foreground" />}
+                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm ${i <= step ? 'text-foreground' : 'text-muted-foreground'} hidden xs:inline`}>{s}</span>
+                {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 mx-1 sm:mx-4 text-muted-foreground" />}
               </div>
             ))}
           </div>
@@ -239,7 +239,7 @@ export default function Onboarding() {
                     </TabsContent>
 
                     <TabsContent value="hrms" className="space-y-4 mt-4">
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {[
                           { name: 'Qiwa API', active: true },
                           { name: 'SAP SuccessFactors', active: false },
@@ -248,11 +248,11 @@ export default function Onboarding() {
                           { name: 'Bayzat', active: false },
                           { name: 'Custom API', active: false },
                         ].map((sys) => (
-                          <div key={sys.name} className={`p-4 rounded-lg border text-center ${sys.active ? 'border-primary bg-accent' : 'opacity-50'}`}>
-                            <div className="w-10 h-10 rounded bg-muted mx-auto mb-2 flex items-center justify-center">
-                              <Database className="w-5 h-5" />
+                          <div key={sys.name} className={`p-3 sm:p-4 rounded-lg border text-center ${sys.active ? 'border-primary bg-accent' : 'opacity-50'}`}>
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-muted mx-auto mb-2 flex items-center justify-center">
+                              <Database className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
-                            <p className="text-sm font-medium">{sys.name}</p>
+                            <p className="text-xs sm:text-sm font-medium">{sys.name}</p>
                             {sys.active ? (
                               <Button size="sm" className="mt-2">Connect</Button>
                             ) : (
@@ -267,16 +267,16 @@ export default function Onboarding() {
                       <p className="text-sm text-muted-foreground">Quick-add up to 10 employees. You can add more later.</p>
                       <div className="space-y-3 max-h-64 overflow-y-auto">
                         {manualEmployees.map((emp, idx) => (
-                          <div key={emp.id} className="flex gap-2 items-center">
+                          <div key={emp.id} className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
                             <span className="text-xs text-muted-foreground w-4">{idx + 1}</span>
                             <Input
                               placeholder="Full Name"
                               value={emp.name}
                               onChange={(e) => updateManualEmployee(emp.id, 'name', e.target.value)}
-                              className="flex-1"
+                              className="flex-1 min-w-[120px]"
                             />
                             <Select value={emp.nationality} onValueChange={(v) => updateManualEmployee(emp.id, 'nationality', v)}>
-                              <SelectTrigger className="w-28"><SelectValue placeholder="Nat." /></SelectTrigger>
+                              <SelectTrigger className="w-24 sm:w-28"><SelectValue placeholder="Nat." /></SelectTrigger>
                               <SelectContent>
                                 {['SA', 'AE', 'QA', 'OM', 'IN', 'EG', 'PK', 'PH', 'GB'].map((n) => (
                                   <SelectItem key={n} value={n}>{getNationalityFlag(n)} {n}</SelectItem>
@@ -287,7 +287,7 @@ export default function Onboarding() {
                               placeholder="Role"
                               value={emp.role}
                               onChange={(e) => updateManualEmployee(emp.id, 'role', e.target.value)}
-                              className="w-32"
+                              className="w-28 sm:w-32"
                             />
                             <Button
                               variant="ghost"

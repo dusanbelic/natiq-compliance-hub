@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/lib/mockData';
-import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportRegulatoryPDF, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX } from '@/lib/export-utils';
+import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportRegulatoryPDF, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX, exportAuditLogPDF, exportAuditLogXLSX } from '@/lib/export-utils';
 import { useAuditLogs, type AuditLog, useForecasts, useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { getRelativeTime } from '@/lib/mockData';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
@@ -125,21 +125,21 @@ export default function Reports() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-sora font-bold text-2xl">Reports</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="font-sora font-bold text-xl sm:text-2xl">Reports</h1>
 
       {/* Report Types */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {REPORTS.map((report) => (
           <Card key={report.id} className="shadow-card">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                  <report.icon className="w-6 h-6 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-accent flex items-center justify-center shrink-0">
+                  <report.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">{report.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{report.desc}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">{report.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">{report.desc}</p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -147,7 +147,7 @@ export default function Reports() {
                       disabled={generating === report.id}
                     >
                       {generating === report.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                      {generating === report.id ? 'Generating...' : 'PDF'}
+                      {generating === report.id ? 'Wait...' : 'PDF'}
                     </Button>
                     <Button
                       size="sm"
@@ -169,8 +169,34 @@ export default function Reports() {
       {!isDemoMode && (
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />Audit Log
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />Audit Log
+              </div>
+              {auditLogs && auditLogs.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      exportAuditLogPDF(auditLogs, selectedEntity.name);
+                      toast.success('Audit log PDF downloaded');
+                    }}
+                  >
+                    <Download className="w-3 h-3 mr-1" />PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      await exportAuditLogXLSX(auditLogs, selectedEntity.name);
+                      toast.success('Audit log Excel downloaded');
+                    }}
+                  >
+                    <Download className="w-3 h-3 mr-1" />Excel
+                  </Button>
+                </div>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -185,17 +211,17 @@ export default function Reports() {
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {auditLogs.map((log: AuditLog) => (
-                  <div key={log.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 text-sm">
-                    <Badge variant={log.action === 'INSERT' ? 'default' : log.action === 'DELETE' ? 'destructive' : 'secondary'} className="text-xs w-16 justify-center">
+                  <div key={log.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded hover:bg-muted/50 text-sm">
+                    <Badge variant={log.action === 'INSERT' ? 'default' : log.action === 'DELETE' ? 'destructive' : 'secondary'} className="text-xs w-14 sm:w-16 justify-center shrink-0">
                       {log.action}
                     </Badge>
-                    <span className="text-muted-foreground">{log.table_name}</span>
+                    <span className="text-muted-foreground hidden sm:inline">{log.table_name}</span>
                     <span className="flex-1 truncate">
                       {log.new_data && (log.new_data as any).full_name
                         ? (log.new_data as any).full_name
                         : log.record_id?.substring(0, 8)}
                     </span>
-                    <span className="text-xs text-muted-foreground">{getRelativeTime(log.created_at)}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{getRelativeTime(log.created_at)}</span>
                   </div>
                 ))}
               </div>
