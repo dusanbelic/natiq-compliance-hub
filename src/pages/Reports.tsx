@@ -96,19 +96,19 @@ export default function Reports() {
         }
       : null;
 
-  const generate = (id: number, title: string, format: 'pdf' | 'excel') => {
+  const generate = async (id: number, title: string, format: 'pdf' | 'excel') => {
     setGenerating(id);
     try {
       if (id === 1) {
-        format === 'pdf' ? exportCompliancePDF(dashboardData) : exportWorkforceAuditXLSX(employees, dashboardData);
+        format === 'pdf' ? exportCompliancePDF(dashboardData) : await exportWorkforceAuditXLSX(employees, dashboardData);
       } else if (id === 2) {
-        format === 'excel' ? exportWorkforceAuditXLSX(employees, dashboardData) : exportCompliancePDF(dashboardData);
+        format === 'excel' ? await exportWorkforceAuditXLSX(employees, dashboardData) : exportCompliancePDF(dashboardData);
       } else if (id === 3 && forecastData) {
         format === 'pdf'
           ? exportForecastPDF(dashboardData, forecastData)
-          : exportEmployeesXLSX(employees, selectedEntity.name);
+          : await exportEmployeesXLSX(employees, selectedEntity.name);
       } else if (id === 4) {
-        format === 'excel' ? exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryPDF(regulatoryChanges);
+        format === 'excel' ? await exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryPDF(regulatoryChanges);
       }
       toast.success(`${title} (${format.toUpperCase()}) downloaded`);
     } catch {

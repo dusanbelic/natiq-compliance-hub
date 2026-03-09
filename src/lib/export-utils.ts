@@ -4,7 +4,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import type { Employee, DashboardData, RegulatoryChange } from '@/types/database';
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -297,93 +297,343 @@ export function exportRegulatoryCSV(changes: RegulatoryChange[]) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Excel (.xlsx) Exports — Multi-sheet workbooks
+// Excel (.xlsx) Exports — ExcelJS with charts & styling
 // ═══════════════════════════════════════════════════════════════════════════
 
-function saveWorkbook(wb: XLSX.WorkBook, filename: string) {
-  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+const BRAND = { primary: '0E7C7B', dark: '1B3A5C', green: '059669', amber: 'D97706', red: 'DC2626', light: 'F0FDFA' };
+
+async function saveExcelWorkbook(wb: ExcelJS.Workbook, filename: string) {
+  const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   downloadBlob(blob, filename);
 }
 
-function setColumnWidths(ws: XLSX.WorkSheet, widths: number[]) {
-  ws['!cols'] = widths.map(w => ({ wch: w }));
+function styleHeaderRow(ws: ExcelJS.Worksheet) {
+  const row = ws.getRow(1);
+  row.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+  row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.primary}` } };
+  row.alignment = { vertical: 'middle', horizontal: 'center' };
+  row.height = 24;
+  row.eachCell(cell => {
+    cell.border = { bottom: { style: 'thin', color: { argb: 'FF' + BRAND.dark } } };
+  });
 }
 
-// ─── Workforce Audit Excel (multi-sheet) ────────────────────────────────────
+function autoFitColumns(ws: ExcelJS.Worksheet, minWidth = 10, maxWidth = 50) {
+  ws.columns.forEach(col => {
+    let max = minWidth;
+    col.eachCell?.({ includeEmpty: false }, cell => {
+      const len = String(cell.value ?? '').length + 2;
+      if (len > max) max = Math.min(len, maxWidth);
+    });
+    col.width = max;
+  });
+}
 
-export function exportWorkforceAuditXLSX(employees: Employee[], data: DashboardData) {
+// ─── Workforce Audit Excel (multi-sheet with chart) ────────────────────────
+
+export async function exportWorkforceAuditXLSX(employees: Employee[], data: DashboardData) {
   const { entity, score, department_breakdown } = data;
-  const wb = XLSX.utils.book_new();
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'NatIQ';
+  wb.created = new Date();
 
-  // Sheet 1: Summary
-  const summaryData = [
-    ['Workforce Audit Pack', entity.name],
-    ['Generated', new Date().toISOString().split('T')[0]],
-    ['Programme', score.program],
+  // ── Sheet 1: Summary ──
+  const wsSummary = wb.addWorksheet('Summary', { properties: { tabColor: { argb: `FF${BRAND.primary}` } } });
+
+  // Title
+  wsSummary.mergeCells('A1:B1');
+  const titleCell = wsSummary.getCell('A1');
+  titleCell.value = `Workforce Audit Pack — ${entity.name}`;
+  titleCell.font = { bold: true, size: 16, color: { argb: `FF${BRAND.primary}` } };
+  titleCell.alignment = { horizontal: 'left' };
+
+  wsSummary.getCell('A2').value = 'Generated';
+  wsSummary.getCell('B2').value = new Date().toISOString().split('T')[0];
+  wsSummary.getCell('A3').value = 'Programme';
+  wsSummary.getCell('B3').value = score.program;
+
+  // Status with color
+  wsSummary.getCell('A4').value = 'Status';
+  const statusCell = wsSummary.getCell('B4');
+  statusCell.value = `${score.status} — ${score.band}`;
+  const statusColor = score.status === 'COMPLIANT' ? BRAND.green : score.status === 'AT_RISK' ? BRAND.amber : BRAND.red;
+  statusCell.font = { bold: true, color: { argb: `FF${statusColor}` } };
+
+  // Metrics
+  const metrics = [
     ['Compliance Ratio', `${score.ratio.toFixed(1)}%`],
     ['Target', `${score.target}%`],
-    ['Status', score.status],
-    ['Band', score.band],
-    [],
     ['Qualifying Total', score.qualifying_total],
     ['Qualifying Nationals', score.qualifying_nationals],
     ['Full-time Nationals', score.nationals_full_time],
     ['Part-time Nationals', score.nationals_part_time],
     ['Contract Nationals (excluded)', score.nationals_contract],
   ];
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  setColumnWidths(wsSummary, [30, 20]);
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+  metrics.forEach(([label, val], i) => {
+    const row = i + 6;
+    wsSummary.getCell(`A${row}`).value = label as string;
+    wsSummary.getCell(`A${row}`).font = { bold: true, color: { argb: `FF${BRAND.dark}` } };
+    wsSummary.getCell(`B${row}`).value = val;
+  });
 
-  // Sheet 2: Department Breakdown
-  const deptHeaders = ['Department', 'Total', 'Nationals', 'Expats', 'Ratio (%)'];
-  const deptRows = department_breakdown.map(d => [d.dept, d.total, d.nationals, d.expats, Number(d.ratio.toFixed(1))]);
-  const wsDept = XLSX.utils.aoa_to_sheet([deptHeaders, ...deptRows]);
-  setColumnWidths(wsDept, [25, 10, 12, 10, 12]);
-  XLSX.utils.book_append_sheet(wb, wsDept, 'Departments');
+  wsSummary.getColumn(1).width = 30;
+  wsSummary.getColumn(2).width = 22;
 
-  // Sheet 3: Employee Roster
-  const empHeaders = ['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band'];
-  const empRows = employees.map(e => [
-    e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
-    e.job_title || '', e.department || '', e.contract_type,
-    e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
-  ]);
-  const wsEmp = XLSX.utils.aoa_to_sheet([empHeaders, ...empRows]);
-  setColumnWidths(wsEmp, [22, 14, 12, 20, 16, 14, 18, 12, 12]);
-  XLSX.utils.book_append_sheet(wb, wsEmp, 'Employees');
+  // ── Sheet 2: Departments with chart ──
+  const wsDept = wb.addWorksheet('Departments', { properties: { tabColor: { argb: `FF${BRAND.dark}` } } });
+  wsDept.addRow(['Department', 'Total', 'Nationals', 'Expats', 'Ratio (%)']);
+  styleHeaderRow(wsDept);
 
-  saveWorkbook(wb, `workforce_audit_${entity.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  department_breakdown.forEach(d => {
+    const row = wsDept.addRow([d.dept, d.total, d.nationals, d.expats, Number(d.ratio.toFixed(1))]);
+    // Color the ratio cell
+    const ratioCell = row.getCell(5);
+    const ratio = d.ratio;
+    ratioCell.font = { bold: true, color: { argb: `FF${ratio >= 20 ? BRAND.green : ratio >= 10 ? BRAND.amber : BRAND.red}` } };
+  });
+
+  autoFitColumns(wsDept);
+
+  // Add bar chart for department nationals vs expats
+  const deptCount = department_breakdown.length;
+  if (deptCount > 0) {
+    const chartStartRow = deptCount + 4;
+    wsDept.getCell(`A${chartStartRow}`).value = '📊 Department Breakdown Chart';
+    wsDept.getCell(`A${chartStartRow}`).font = { bold: true, size: 13, color: { argb: `FF${BRAND.primary}` } };
+
+    // Data summary for visual reference (ExcelJS chart support is limited, so we add a visual data bar)
+    department_breakdown.forEach((d, i) => {
+      const row = chartStartRow + 2 + i;
+      wsDept.getCell(`A${row}`).value = d.dept;
+      wsDept.getCell(`B${row}`).value = d.nationals;
+      wsDept.getCell(`C${row}`).value = d.expats;
+
+      // Nationals bar (green filled cells)
+      const natBar = Math.round(d.nationals / Math.max(...department_breakdown.map(x => x.total)) * 20);
+      for (let j = 0; j < natBar; j++) {
+        const cell = wsDept.getCell(row, 5 + j);
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.green}` } };
+        cell.value = '';
+      }
+      // Expats bar (amber filled cells)
+      const expBar = Math.round(d.expats / Math.max(...department_breakdown.map(x => x.total)) * 20);
+      for (let j = 0; j < expBar; j++) {
+        const cell = wsDept.getCell(row, 5 + natBar + j);
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.amber}` } };
+        cell.value = '';
+      }
+    });
+
+    // Legend
+    const legendRow = chartStartRow + 2 + deptCount + 1;
+    const greenLegend = wsDept.getCell(`E${legendRow}`);
+    greenLegend.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.green}` } };
+    wsDept.getCell(`F${legendRow}`).value = 'Nationals';
+    const amberLegend = wsDept.getCell(`G${legendRow}`);
+    amberLegend.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.amber}` } };
+    wsDept.getCell(`H${legendRow}`).value = 'Expats';
+  }
+
+  // ── Sheet 3: Compliance Gauge ──
+  const wsGauge = wb.addWorksheet('Compliance Gauge', { properties: { tabColor: { argb: `FF${statusColor}` } } });
+  wsGauge.mergeCells('A1:F1');
+  wsGauge.getCell('A1').value = 'Compliance Ratio Gauge';
+  wsGauge.getCell('A1').font = { bold: true, size: 16, color: { argb: `FF${BRAND.primary}` } };
+
+  // Build a visual gauge bar
+  const gaugeWidth = 40;
+  const filled = Math.round((score.ratio / 100) * gaugeWidth);
+  const targetMark = Math.round((score.target / 100) * gaugeWidth);
+
+  wsGauge.getCell('A3').value = '0%';
+  wsGauge.getCell(`A4`).value = 'Current';
+  for (let i = 0; i < gaugeWidth; i++) {
+    const cell = wsGauge.getCell(3, 2 + i);
+    if (i < filled) {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${statusColor}` } };
+    } else {
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE5E7EB' } };
+    }
+    cell.value = '';
+    // Target marker
+    if (i === targetMark) {
+      const markerCell = wsGauge.getCell(4, 2 + i);
+      markerCell.value = '▲';
+      markerCell.font = { bold: true, color: { argb: `FF${BRAND.dark}` }, size: 10 };
+      markerCell.alignment = { horizontal: 'center' };
+    }
+  }
+  wsGauge.getCell(3, 2 + gaugeWidth + 1).value = '100%';
+
+  wsGauge.getCell('A6').value = `Current: ${score.ratio.toFixed(1)}%`;
+  wsGauge.getCell('A6').font = { bold: true, size: 14, color: { argb: `FF${statusColor}` } };
+  wsGauge.getCell('A7').value = `Target: ${score.target}%`;
+  wsGauge.getCell('A7').font = { bold: true, size: 12, color: { argb: `FF${BRAND.dark}` } };
+  wsGauge.getCell('A8').value = `Gap: ${(score.target - score.ratio).toFixed(1)}%`;
+  wsGauge.getCell('A8').font = { size: 12, color: { argb: `FF${score.ratio >= score.target ? BRAND.green : BRAND.red}` } };
+
+  // ── Sheet 4: Employee Roster ──
+  const wsEmp = wb.addWorksheet('Employees');
+  wsEmp.addRow(['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band']);
+  styleHeaderRow(wsEmp);
+
+  employees.forEach(e => {
+    const row = wsEmp.addRow([
+      e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
+      e.job_title || '', e.department || '', e.contract_type,
+      e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
+    ]);
+    // Highlight nationals
+    if (e.is_national) {
+      row.getCell(3).font = { bold: true, color: { argb: `FF${BRAND.green}` } };
+    }
+  });
+
+  autoFitColumns(wsEmp);
+
+  await saveExcelWorkbook(wb, `workforce_audit_${entity.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
 // ─── Regulatory Impact Excel ────────────────────────────────────────────────
 
-export function exportRegulatoryXLSX(changes: RegulatoryChange[]) {
-  const wb = XLSX.utils.book_new();
-  const headers = ['Country', 'Programme', 'Headline', 'Impact Level', 'Change Type', 'Effective Date', 'Detected At', 'Summary'];
-  const rows = changes.map(c => [
-    c.country, c.program, c.headline, c.impact_level || '', c.change_type || '',
-    c.effective_date || '', c.detected_at, c.summary || '',
-  ]);
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  setColumnWidths(ws, [10, 20, 35, 14, 22, 14, 14, 50]);
-  XLSX.utils.book_append_sheet(wb, ws, 'Regulatory Changes');
-  saveWorkbook(wb, `regulatory_changes_${new Date().toISOString().split('T')[0]}.xlsx`);
+export async function exportRegulatoryXLSX(changes: RegulatoryChange[]) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'NatIQ';
+
+  const ws = wb.addWorksheet('Regulatory Changes', { properties: { tabColor: { argb: `FF${BRAND.primary}` } } });
+  ws.addRow(['Country', 'Programme', 'Headline', 'Impact Level', 'Change Type', 'Effective Date', 'Detected At', 'Summary']);
+  styleHeaderRow(ws);
+
+  changes.forEach(c => {
+    const row = ws.addRow([
+      c.country, c.program, c.headline, c.impact_level || '', c.change_type || '',
+      c.effective_date || '', c.detected_at, c.summary || '',
+    ]);
+    // Color impact level
+    const impactCell = row.getCell(4);
+    const impact = c.impact_level;
+    if (impact === 'HIGH') impactCell.font = { bold: true, color: { argb: `FF${BRAND.red}` } };
+    else if (impact === 'MEDIUM') impactCell.font = { bold: true, color: { argb: `FF${BRAND.amber}` } };
+    else if (impact === 'LOW') impactCell.font = { color: { argb: `FF${BRAND.green}` } };
+  });
+
+  // Impact summary chart section
+  const highCount = changes.filter(c => c.impact_level === 'HIGH').length;
+  const medCount = changes.filter(c => c.impact_level === 'MEDIUM').length;
+  const lowCount = changes.filter(c => c.impact_level === 'LOW').length;
+
+  const chartRow = changes.length + 4;
+  ws.getCell(`A${chartRow}`).value = '📊 Impact Distribution';
+  ws.getCell(`A${chartRow}`).font = { bold: true, size: 13, color: { argb: `FF${BRAND.primary}` } };
+
+  const labels = ['HIGH', 'MEDIUM', 'LOW'];
+  const counts = [highCount, medCount, lowCount];
+  const colors = [BRAND.red, BRAND.amber, BRAND.green];
+  const maxCount = Math.max(...counts, 1);
+
+  labels.forEach((label, i) => {
+    const row = chartRow + 2 + i;
+    ws.getCell(`A${row}`).value = label;
+    ws.getCell(`A${row}`).font = { bold: true, color: { argb: `FF${colors[i]}` } };
+    ws.getCell(`B${row}`).value = counts[i];
+
+    const barLen = Math.round((counts[i] / maxCount) * 20);
+    for (let j = 0; j < barLen; j++) {
+      const cell = ws.getCell(row, 3 + j);
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${colors[i]}` } };
+      cell.value = '';
+    }
+  });
+
+  autoFitColumns(ws);
+  await saveExcelWorkbook(wb, `regulatory_changes_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
 
 // ─── Employee List Excel ────────────────────────────────────────────────────
 
-export function exportEmployeesXLSX(employees: Employee[], entityName: string) {
-  const wb = XLSX.utils.book_new();
-  const headers = ['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band'];
-  const rows = employees.map(e => [
-    e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
-    e.job_title || '', e.department || '', e.contract_type,
-    e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
-  ]);
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  setColumnWidths(ws, [22, 14, 12, 20, 16, 14, 18, 12, 12]);
-  XLSX.utils.book_append_sheet(wb, ws, 'Employees');
-  saveWorkbook(wb, `employees_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+export async function exportEmployeesXLSX(employees: Employee[], entityName: string) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'NatIQ';
+
+  // Sheet 1: Roster
+  const ws = wb.addWorksheet('Employees', { properties: { tabColor: { argb: `FF${BRAND.primary}` } } });
+  ws.addRow(['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band']);
+  styleHeaderRow(ws);
+
+  employees.forEach(e => {
+    const row = ws.addRow([
+      e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
+      e.job_title || '', e.department || '', e.contract_type,
+      e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
+    ]);
+    if (e.is_national) row.getCell(3).font = { bold: true, color: { argb: `FF${BRAND.green}` } };
+  });
+
+  autoFitColumns(ws);
+
+  // Sheet 2: Nationality breakdown chart
+  const wsChart = wb.addWorksheet('Breakdown');
+  wsChart.getCell('A1').value = 'Nationality Breakdown';
+  wsChart.getCell('A1').font = { bold: true, size: 14, color: { argb: `FF${BRAND.primary}` } };
+
+  const nationals = employees.filter(e => e.is_national).length;
+  const expats = employees.length - nationals;
+  const total = employees.length || 1;
+
+  wsChart.getCell('A3').value = 'Nationals';
+  wsChart.getCell('B3').value = nationals;
+  wsChart.getCell('C3').value = `${((nationals / total) * 100).toFixed(1)}%`;
+  wsChart.getCell('C3').font = { bold: true, color: { argb: `FF${BRAND.green}` } };
+
+  wsChart.getCell('A4').value = 'Expats';
+  wsChart.getCell('B4').value = expats;
+  wsChart.getCell('C4').value = `${((expats / total) * 100).toFixed(1)}%`;
+
+  // Visual bar
+  const natBar = Math.round((nationals / total) * 30);
+  const expBar = 30 - natBar;
+  for (let i = 0; i < natBar; i++) {
+    const cell = wsChart.getCell(6, 1 + i);
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.green}` } };
+    cell.value = '';
+  }
+  for (let i = 0; i < expBar; i++) {
+    const cell = wsChart.getCell(6, 1 + natBar + i);
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: `FF${BRAND.amber}` } };
+    cell.value = '';
+  }
+
+  wsChart.getCell('A8').value = '■ Nationals';
+  wsChart.getCell('A8').font = { color: { argb: `FF${BRAND.green}` } };
+  wsChart.getCell('B8').value = '■ Expats';
+  wsChart.getCell('B8').font = { color: { argb: `FF${BRAND.amber}` } };
+
+  // Department distribution
+  const deptMap = new Map<string, { total: number; nationals: number }>();
+  employees.forEach(e => {
+    const dept = e.department || 'Unassigned';
+    const cur = deptMap.get(dept) || { total: 0, nationals: 0 };
+    cur.total++;
+    if (e.is_national) cur.nationals++;
+    deptMap.set(dept, cur);
+  });
+
+  let deptRow = 10;
+  wsChart.getCell(`A${deptRow}`).value = 'By Department';
+  wsChart.getCell(`A${deptRow}`).font = { bold: true, size: 13, color: { argb: `FF${BRAND.dark}` } };
+  deptRow += 1;
+  wsChart.addRow([]);
+
+  wsChart.getRow(deptRow).values = ['Department', 'Total', 'Nationals', 'Ratio'];
+  wsChart.getRow(deptRow).font = { bold: true };
+  deptRow++;
+
+  deptMap.forEach((val, dept) => {
+    wsChart.getRow(deptRow).values = [dept, val.total, val.nationals, `${((val.nationals / val.total) * 100).toFixed(1)}%`];
+    deptRow++;
+  });
+
+  autoFitColumns(wsChart);
+  await saveExcelWorkbook(wb, `employees_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
