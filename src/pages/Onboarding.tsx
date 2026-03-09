@@ -154,17 +154,17 @@ export default function Onboarding() {
         </div>
       </header>
 
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-2xl">
           {/* Progress */}
-          <div className="flex items-center justify-center gap-4 mb-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mb-6 sm:mb-8">
             {STEPS.map((s, i) => (
               <div key={s} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-sm ${i <= step ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   {i < step ? <Check className="w-4 h-4" /> : i + 1}
                 </div>
-                <span className={`ml-2 text-sm ${i <= step ? 'text-foreground' : 'text-muted-foreground'}`}>{s}</span>
-                {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 mx-4 text-muted-foreground" />}
+                <span className={`ml-1 sm:ml-2 text-xs sm:text-sm ${i <= step ? 'text-foreground' : 'text-muted-foreground'} hidden xs:inline`}>{s}</span>
+                {i < STEPS.length - 1 && <ChevronRight className="w-4 h-4 mx-1 sm:mx-4 text-muted-foreground" />}
               </div>
             ))}
           </div>
