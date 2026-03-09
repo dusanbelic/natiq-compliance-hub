@@ -67,28 +67,26 @@ export default function Forecast() {
   const chartData = useMemo(() => {
     if (!baseData) return [];
     
-    const data = [...baseData.data];
+    // Create a copy with scenario field
+    const data = baseData.data.map(d => ({ ...d, scenario: undefined as number | undefined }));
     
     // If scenario applied, override projected values
     if (projections.hasScenario) {
       const todayIndex = data.findIndex(d => d.isToday);
       if (todayIndex >= 0) {
         // Interpolate between today and projected values
-        const remaining = data.slice(todayIndex);
         const step30 = (projections.ratio30 - score.ratio) / 3;
         const step60 = (projections.ratio60 - projections.ratio30) / 3;
         const step90 = (projections.ratio90 - projections.ratio60) / 3;
         
-        remaining.forEach((point, i) => {
-          if (i === 0) return; // Today
+        data.forEach((point, idx) => {
+          const i = idx - todayIndex;
+          if (i <= 0) return; // Before or at today
           if (i <= 3) {
-            point.projected = score.ratio + (step30 * i);
             point.scenario = score.ratio + (step30 * i);
           } else if (i <= 6) {
-            point.projected = projections.ratio30 + (step60 * (i - 3));
             point.scenario = projections.ratio30 + (step60 * (i - 3));
           } else {
-            point.projected = projections.ratio60 + (step90 * (i - 6));
             point.scenario = projections.ratio60 + (step90 * (i - 6));
           }
         });
