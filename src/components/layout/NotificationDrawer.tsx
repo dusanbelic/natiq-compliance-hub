@@ -130,6 +130,10 @@ export function NotificationDrawer({ open, onClose, onUnreadCountChange }: Notif
   const unreadNotifications = effectiveNotifications.filter((n) => !n.read);
   const readNotifications = effectiveNotifications.filter((n) => n.read);
 
+  useEffect(() => {
+    onUnreadCountChange?.(unreadNotifications.length);
+  }, [unreadNotifications.length, onUnreadCountChange]);
+
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent side={isRTL ? 'left' : 'right'} className="w-full sm:max-w-md p-0" aria-describedby="notification-drawer-desc">
