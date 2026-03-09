@@ -180,7 +180,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                     return (
                       <SwipeableNotification
                         key={notification.id}
-                        onDelete={() => !isDemoMode && deleteNotification.mutate(notification.id)}
+                        onDelete={() => handleDeleteById(notification.id)}
                       >
                         <div
                           className="relative group w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow cursor-pointer"
