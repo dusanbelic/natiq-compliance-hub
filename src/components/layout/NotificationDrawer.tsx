@@ -106,10 +106,28 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 {t('Mark all read')}
               </Button>
               {notifications.length > 0 && (
-                <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={handleClearAll}>
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  {t('Clear all')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs text-destructive">
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      {t('Clear all')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('Clear all notifications?')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('This will permanently delete all your notifications. This action cannot be undone.')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {t('Clear all')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </div>
