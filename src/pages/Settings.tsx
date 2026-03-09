@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompany, useUpdateCompany, useEntities, useUserProfile, useUpdateUserProfile, useTeamMembers, useTeamMemberRoles } from '@/hooks/use-supabase-data';
+import { usePermissions } from '@/hooks/use-permissions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PLANS = [
