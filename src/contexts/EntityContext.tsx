@@ -170,6 +170,27 @@ export function EntityProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
   }, [isDemoMode, user]);
 
+  const refreshEntityData = useCallback(() => {
+    if (isDemoMode || !user) return;
+    // Re-trigger fetch by toggling a state (simplest: re-run effect)
+    setLoading(true);
+    (async () => {
+      try {
+        const { data: entitiesData } = await supabase.from('entities').select('*').order('name');
+        const ents = (entitiesData || []) as Entity[];
+        setEntities(ents);
+        if (ents.length > 0) {
+          const empResults = await Promise.all(ents.map(e => supabase.from('employees').select('*').eq('entity_id', e.id)));
+          const empMap: Record<string, Tables<'employees'>[]> = {};
+          ents.forEach((e, i) => { empMap[e.id] = (empResults[i].data || []) as Tables<'employees'>[]; });
+          setEmployeesByEntity(empMap);
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [isDemoMode, user]);
+
   const selectedEntity = useMemo(() => {
     return entities.find(e => e.id === selectedEntityId) ?? entities[0] ?? MOCK_ENTITIES[0];
   }, [entities, selectedEntityId]);
