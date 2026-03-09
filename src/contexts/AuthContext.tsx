@@ -50,8 +50,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsDemoMode(false);
           localStorage.removeItem('natiq_demo_mode');
           
-          // Fetch user profile - defer to avoid blocking
-          setTimeout(() => fetchProfile(newSession.user.id), 0);
+          // For now, use a simple profile based on user metadata
+          // Real profile fetch will be added when table exists
+          setProfile({
+            id: newSession.user.id,
+            company_id: null,
+            full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
+            role: 'hr_manager',
+            language_pref: 'en',
+            notification_email: true,
+            notification_in_app: true,
+            created_at: newSession.user.created_at ?? new Date().toISOString(),
+          });
         } else {
           setProfile(null);
         }
@@ -66,7 +76,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(existingSession?.user ?? null);
       
       if (existingSession?.user) {
-        fetchProfile(existingSession.user.id);
+        setProfile({
+          id: existingSession.user.id,
+          company_id: null,
+          full_name: existingSession.user.user_metadata?.full_name ?? existingSession.user.email?.split('@')[0] ?? 'User',
+          role: 'hr_manager',
+          language_pref: 'en',
+          notification_email: true,
+          notification_in_app: true,
+          created_at: existingSession.user.created_at ?? new Date().toISOString(),
+        });
       }
       
       // If no session and not demo mode, just set loading to false
@@ -83,26 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
-      }
-      
-      if (data) {
-        setProfile(data as UserProfile);
-      }
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
