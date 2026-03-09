@@ -43,7 +43,7 @@ interface NotificationItem {
   created_at: string;
 }
 
-export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
+export function NotificationDrawer({ open, onClose, onUnreadCountChange }: NotificationDrawerProps) {
   const navigate = useNavigate();
   const { isDemoMode } = useAuth();
   const { t, isRTL } = useLanguage();
