@@ -59,6 +59,9 @@ export default function Employees() {
           Employees <span className="text-muted-foreground text-lg">({employees.length})</span>
         </h1>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportEmployeesCSV(employees, selectedEntity.name)}>
+            <Download className="w-4 h-4 mr-2" />Export CSV
+          </Button>
           <Button variant="outline" onClick={() => setCsvOpen(true)}>
             <Upload className="w-4 h-4 mr-2" />Import CSV
           </Button>
