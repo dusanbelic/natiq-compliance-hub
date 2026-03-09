@@ -4,6 +4,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import type { Employee, DashboardData, RegulatoryChange } from '@/types/database';
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -266,4 +267,96 @@ export function exportRegulatoryCSV(changes: RegulatoryChange[]) {
   const csv = [headers.map(escapeCsv).join(','), ...rows.map(r => r.map(escapeCsv).join(','))].join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
   downloadBlob(blob, `regulatory_changes_${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Excel (.xlsx) Exports — Multi-sheet workbooks
+// ═══════════════════════════════════════════════════════════════════════════
+
+function saveWorkbook(wb: XLSX.WorkBook, filename: string) {
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  downloadBlob(blob, filename);
+}
+
+function setColumnWidths(ws: XLSX.WorkSheet, widths: number[]) {
+  ws['!cols'] = widths.map(w => ({ wch: w }));
+}
+
+// ─── Workforce Audit Excel (multi-sheet) ────────────────────────────────────
+
+export function exportWorkforceAuditXLSX(employees: Employee[], data: DashboardData) {
+  const { entity, score, department_breakdown } = data;
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1: Summary
+  const summaryData = [
+    ['Workforce Audit Pack', entity.name],
+    ['Generated', new Date().toISOString().split('T')[0]],
+    ['Programme', score.program],
+    ['Compliance Ratio', `${score.ratio.toFixed(1)}%`],
+    ['Target', `${score.target}%`],
+    ['Status', score.status],
+    ['Band', score.band],
+    [],
+    ['Qualifying Total', score.qualifying_total],
+    ['Qualifying Nationals', score.qualifying_nationals],
+    ['Full-time Nationals', score.nationals_full_time],
+    ['Part-time Nationals', score.nationals_part_time],
+    ['Contract Nationals (excluded)', score.nationals_contract],
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  setColumnWidths(wsSummary, [30, 20]);
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  // Sheet 2: Department Breakdown
+  const deptHeaders = ['Department', 'Total', 'Nationals', 'Expats', 'Ratio (%)'];
+  const deptRows = department_breakdown.map(d => [d.dept, d.total, d.nationals, d.expats, Number(d.ratio.toFixed(1))]);
+  const wsDept = XLSX.utils.aoa_to_sheet([deptHeaders, ...deptRows]);
+  setColumnWidths(wsDept, [25, 10, 12, 10, 12]);
+  XLSX.utils.book_append_sheet(wb, wsDept, 'Departments');
+
+  // Sheet 3: Employee Roster
+  const empHeaders = ['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band'];
+  const empRows = employees.map(e => [
+    e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
+    e.job_title || '', e.department || '', e.contract_type,
+    e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
+  ]);
+  const wsEmp = XLSX.utils.aoa_to_sheet([empHeaders, ...empRows]);
+  setColumnWidths(wsEmp, [22, 14, 12, 20, 16, 14, 18, 12, 12]);
+  XLSX.utils.book_append_sheet(wb, wsEmp, 'Employees');
+
+  saveWorkbook(wb, `workforce_audit_${entity.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+// ─── Regulatory Impact Excel ────────────────────────────────────────────────
+
+export function exportRegulatoryXLSX(changes: RegulatoryChange[]) {
+  const wb = XLSX.utils.book_new();
+  const headers = ['Country', 'Programme', 'Headline', 'Impact Level', 'Change Type', 'Effective Date', 'Detected At', 'Summary'];
+  const rows = changes.map(c => [
+    c.country, c.program, c.headline, c.impact_level || '', c.change_type || '',
+    c.effective_date || '', c.detected_at, c.summary || '',
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  setColumnWidths(ws, [10, 20, 35, 14, 22, 14, 14, 50]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Regulatory Changes');
+  saveWorkbook(wb, `regulatory_changes_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+// ─── Employee List Excel ────────────────────────────────────────────────────
+
+export function exportEmployeesXLSX(employees: Employee[], entityName: string) {
+  const wb = XLSX.utils.book_new();
+  const headers = ['Name', 'Nationality', 'Is National', 'Job Title', 'Department', 'Contract Type', 'Counts Toward Quota', 'Start Date', 'Salary Band'];
+  const rows = employees.map(e => [
+    e.full_name, e.nationality, e.is_national ? 'Yes' : 'No',
+    e.job_title || '', e.department || '', e.contract_type,
+    e.counts_toward_quota ? 'Yes' : 'No', e.start_date || '', e.salary_band || '',
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  setColumnWidths(ws, [22, 14, 12, 20, 16, 14, 18, 12, 12]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+  saveWorkbook(wb, `employees_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }

@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/lib/mockData';
-import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportEmployeesCSV } from '@/lib/export-utils';
+import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportEmployeesCSV, exportWorkforceAuditXLSX, exportRegulatoryXLSX, exportEmployeesXLSX } from '@/lib/export-utils';
 import { useAuditLogs, type AuditLog, useForecasts, useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { getRelativeTime } from '@/lib/mockData';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
@@ -100,15 +100,15 @@ export default function Reports() {
     setGenerating(id);
     try {
       if (id === 1) {
-        format === 'pdf' ? exportCompliancePDF(dashboardData) : exportWorkforceAuditCSV(employees, dashboardData);
+        format === 'pdf' ? exportCompliancePDF(dashboardData) : exportWorkforceAuditXLSX(employees, dashboardData);
       } else if (id === 2) {
-        format === 'excel' ? exportWorkforceAuditCSV(employees, dashboardData) : exportCompliancePDF(dashboardData);
+        format === 'excel' ? exportWorkforceAuditXLSX(employees, dashboardData) : exportCompliancePDF(dashboardData);
       } else if (id === 3 && forecastData) {
         format === 'pdf'
           ? exportForecastPDF(dashboardData, forecastData)
-          : exportEmployeesCSV(employees, selectedEntity.name);
+          : exportEmployeesXLSX(employees, selectedEntity.name);
       } else if (id === 4) {
-        exportRegulatoryCSV(regulatoryChanges);
+        format === 'excel' ? exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryCSV(regulatoryChanges);
       }
       toast.success(`${title} (${format.toUpperCase()}) downloaded`);
     } catch {
@@ -155,7 +155,7 @@ export default function Reports() {
                       onClick={() => generate(report.id, report.title, 'excel')}
                       disabled={generating === report.id}
                     >
-                      <Download className="w-4 h-4 mr-1" />Excel/CSV
+                      <Download className="w-4 h-4 mr-1" />Excel
                     </Button>
                   </div>
                 </div>
