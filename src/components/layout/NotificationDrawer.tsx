@@ -150,32 +150,36 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                     const Icon = TYPE_ICONS[notification.type] || CheckCircle;
                     const colorClass = TYPE_COLORS[notification.type] || 'text-muted bg-muted';
                     return (
-                      <div
+                      <SwipeableNotification
                         key={notification.id}
-                        className="relative group w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow cursor-pointer"
-                        onClick={() => handleNotificationClick(notification)}
+                        onDelete={() => !isDemoMode && deleteNotification.mutate(notification.id)}
                       >
-                        <button
-                          onClick={(e) => handleDelete(e, notification.id)}
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
-                          aria-label="Delete notification"
+                        <div
+                          className="relative group w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow cursor-pointer"
+                          onClick={() => handleNotificationClick(notification)}
                         >
-                          <X className="w-3.5 h-3.5 text-muted-foreground" />
-                        </button>
-                        <div className="flex gap-3">
-                          <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', colorClass)}>
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-medium text-foreground">{notification.title}</p>
-                              <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
+                          <button
+                            onClick={(e) => handleDelete(e, notification.id)}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
+                            aria-label="Delete notification"
+                          >
+                            <X className="w-3.5 h-3.5 text-muted-foreground" />
+                          </button>
+                          <div className="flex gap-3">
+                            <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', colorClass)}>
+                              <Icon className="w-4 h-4" />
                             </div>
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.body}</p>
-                            <p className="text-xs text-muted-foreground/60 mt-1">{getRelativeTime(notification.created_at)}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm font-medium text-foreground">{notification.title}</p>
+                                <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{notification.body}</p>
+                              <p className="text-xs text-muted-foreground/60 mt-1">{getRelativeTime(notification.created_at)}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </SwipeableNotification>
                     );
                   })}
                 </div>
