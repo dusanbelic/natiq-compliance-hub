@@ -4,7 +4,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import type { Employee, DashboardData, RegulatoryChange } from '@/types/database';
 
 function downloadBlob(blob: Blob, filename: string) {
