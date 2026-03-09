@@ -637,3 +637,95 @@ export async function exportEmployeesXLSX(employees: Employee[], entityName: str
   autoFitColumns(wsChart);
   await saveExcelWorkbook(wb, `employees_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Audit Log Exports
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface AuditLogEntry {
+  id: string;
+  action: string;
+  table_name: string;
+  record_id: string | null;
+  created_at: string;
+  new_data?: any;
+  old_data?: any;
+}
+
+export function exportAuditLogPDF(logs: AuditLogEntry[], entityName: string) {
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const doc = new jsPDF('landscape');
+  let y = addHeader(doc, 'Audit Log Report', `${entityName} — Generated ${now}`);
+
+  autoTable(doc, {
+    startY: y,
+    margin: { left: 14, right: 14 },
+    head: [['Timestamp', 'Action', 'Table', 'Record', 'Details']],
+    body: logs.map(log => [
+      new Date(log.created_at).toLocaleString(),
+      log.action,
+      log.table_name,
+      log.record_id?.substring(0, 8) || '—',
+      log.new_data?.full_name || log.old_data?.full_name || '—',
+    ]),
+    headStyles: { fillColor: COLORS.primary, fontSize: 9 },
+    styles: { fontSize: 8, cellPadding: 3 },
+    didParseCell: (data: any) => {
+      if (data.column.index === 1 && data.section === 'body') {
+        const action = data.cell.raw;
+        if (action === 'INSERT') data.cell.styles.textColor = COLORS.compliant;
+        else if (action === 'DELETE') data.cell.styles.textColor = COLORS.nonCompliant;
+        else if (action === 'UPDATE') data.cell.styles.textColor = COLORS.atRisk;
+      }
+    },
+  });
+
+  addFooter(doc);
+  doc.save(`audit_log_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+export async function exportAuditLogXLSX(logs: AuditLogEntry[], entityName: string) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'NatIQ';
+
+  const ws = wb.addWorksheet('Audit Log', { properties: { tabColor: { argb: `FF${BRAND.dark}` } } });
+  ws.addRow(['Timestamp', 'Action', 'Table', 'Record ID', 'Name', 'Details']);
+  styleHeaderRow(ws);
+
+  logs.forEach(log => {
+    const name = log.new_data?.full_name || log.old_data?.full_name || '';
+    const row = ws.addRow([
+      new Date(log.created_at).toLocaleString(),
+      log.action,
+      log.table_name,
+      log.record_id || '',
+      name,
+      JSON.stringify(log.new_data || log.old_data || {}).substring(0, 200),
+    ]);
+
+    const actionCell = row.getCell(2);
+    if (log.action === 'INSERT') actionCell.font = { bold: true, color: { argb: `FF${BRAND.green}` } };
+    else if (log.action === 'DELETE') actionCell.font = { bold: true, color: { argb: `FF${BRAND.red}` } };
+    else actionCell.font = { bold: true, color: { argb: `FF${BRAND.amber}` } };
+  });
+
+  autoFitColumns(ws);
+
+  // Summary sheet
+  const wsSummary = wb.addWorksheet('Summary');
+  wsSummary.getCell('A1').value = 'Audit Log Summary';
+  wsSummary.getCell('A1').font = { bold: true, size: 14, color: { argb: `FF${BRAND.primary}` } };
+  wsSummary.getCell('A3').value = 'Entity';
+  wsSummary.getCell('B3').value = entityName;
+  wsSummary.getCell('A4').value = 'Total Entries';
+  wsSummary.getCell('B4').value = logs.length;
+  wsSummary.getCell('A5').value = 'Inserts';
+  wsSummary.getCell('B5').value = logs.filter(l => l.action === 'INSERT').length;
+  wsSummary.getCell('A6').value = 'Updates';
+  wsSummary.getCell('B6').value = logs.filter(l => l.action === 'UPDATE').length;
+  wsSummary.getCell('A7').value = 'Deletes';
+  wsSummary.getCell('B7').value = logs.filter(l => l.action === 'DELETE').length;
+
+  autoFitColumns(wsSummary);
+  await saveExcelWorkbook(wb, `audit_log_${entityName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`);
+}

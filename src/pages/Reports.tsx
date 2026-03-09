@@ -169,8 +169,34 @@ export default function Reports() {
       {!isDemoMode && (
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5" />Audit Log
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />Audit Log
+              </div>
+              {auditLogs && auditLogs.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      exportAuditLogPDF(auditLogs, selectedEntity.name);
+                      toast.success('Audit log PDF downloaded');
+                    }}
+                  >
+                    <Download className="w-3 h-3 mr-1" />PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      await exportAuditLogXLSX(auditLogs, selectedEntity.name);
+                      toast.success('Audit log Excel downloaded');
+                    }}
+                  >
+                    <Download className="w-3 h-3 mr-1" />Excel
+                  </Button>
+                </div>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -185,17 +211,17 @@ export default function Reports() {
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto">
                 {auditLogs.map((log: AuditLog) => (
-                  <div key={log.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 text-sm">
-                    <Badge variant={log.action === 'INSERT' ? 'default' : log.action === 'DELETE' ? 'destructive' : 'secondary'} className="text-xs w-16 justify-center">
+                  <div key={log.id} className="flex items-center gap-2 sm:gap-3 p-2 rounded hover:bg-muted/50 text-sm">
+                    <Badge variant={log.action === 'INSERT' ? 'default' : log.action === 'DELETE' ? 'destructive' : 'secondary'} className="text-xs w-14 sm:w-16 justify-center shrink-0">
                       {log.action}
                     </Badge>
-                    <span className="text-muted-foreground">{log.table_name}</span>
+                    <span className="text-muted-foreground hidden sm:inline">{log.table_name}</span>
                     <span className="flex-1 truncate">
                       {log.new_data && (log.new_data as any).full_name
                         ? (log.new_data as any).full_name
                         : log.record_id?.substring(0, 8)}
                     </span>
-                    <span className="text-xs text-muted-foreground">{getRelativeTime(log.created_at)}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{getRelativeTime(log.created_at)}</span>
                   </div>
                 ))}
               </div>
