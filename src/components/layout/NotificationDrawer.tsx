@@ -84,12 +84,17 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
     }
   };
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (isDemoMode) {
-      setDismissedIds(prev => new Set(prev).add(id));
-    } else {
-      deleteNotification.mutate(id);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (pendingDeleteId) {
+      handleDeleteById(pendingDeleteId);
+      setPendingDeleteId(null);
     }
   };
 
