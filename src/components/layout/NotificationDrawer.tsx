@@ -53,7 +53,9 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const deleteNotification = useDeleteNotification();
   const clearAll = useClearAllNotifications();
 
-  const notifications: NotificationItem[] = isDemoMode 
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const allNotifications: NotificationItem[] = isDemoMode 
     ? MOCK_NOTIFICATIONS 
     : (liveNotifications || []).map(n => ({
         id: n.id,
@@ -65,9 +67,16 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         created_at: n.created_at ?? new Date().toISOString(),
       }));
 
+  const notifications = allNotifications.filter(n => !dismissedIds.has(n.id));
+  const [demoReadIds, setDemoReadIds] = useState<Set<string>>(new Set());
+
   const handleNotificationClick = (notification: NotificationItem) => {
-    if (!isDemoMode && !notification.read) {
-      markRead.mutate(notification.id);
+    if (!notification.read) {
+      if (isDemoMode) {
+        setDemoReadIds(prev => new Set(prev).add(notification.id));
+      } else {
+        markRead.mutate(notification.id);
+      }
     }
     if (notification.action_url) {
       navigate(notification.action_url);
@@ -77,19 +86,33 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDismissedIds(prev => new Set(prev).add(id));
+    } else {
+      deleteNotification.mutate(id);
+    }
+  };
+
+  const handleDeleteById = (id: string) => {
+    if (isDemoMode) {
+      setDismissedIds(prev => new Set(prev).add(id));
+    } else {
       deleteNotification.mutate(id);
     }
   };
 
   const handleMarkAllRead = () => {
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDemoReadIds(new Set(notifications.map(n => n.id)));
+    } else {
       markAllRead.mutate();
     }
   };
 
   const handleClearAll = () => {
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDismissedIds(new Set(allNotifications.map(n => n.id)));
+    } else {
       clearAll.mutate();
     }
   };
