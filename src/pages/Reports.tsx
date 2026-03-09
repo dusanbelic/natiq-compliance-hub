@@ -64,12 +64,24 @@ export default function Reports() {
   const { selectedEntity, dashboardData, employeesByEntity } = useEntity();
   const { isDemoMode } = useAuth();
   const [generating, setGenerating] = useState<number | null>(null);
-  const [scheduledEnabled, setScheduledEnabled] = useState(false);
-  const [scheduleFreq, setScheduleFreq] = useState('weekly');
-  const [emails, setEmails] = useState(['khalid@acmegulf.com']);
   const [newEmail, setNewEmail] = useState('');
+  const [localEnabled, setLocalEnabled] = useState<boolean | null>(null);
+  const [localFreq, setLocalFreq] = useState<string | null>(null);
+  const [localEmails, setLocalEmails] = useState<string[] | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { data: auditLogs, isLoading: auditLoading } = useAuditLogs(selectedEntity.id);
+  const { data: schedule, isLoading: scheduleLoading } = useReportSchedule(selectedEntity.id);
+  const upsertSchedule = useUpsertReportSchedule();
+
+  // Derive display values from saved schedule or local overrides
+  const scheduledEnabled = localEnabled ?? schedule?.enabled ?? false;
+  const scheduleFreq = localFreq ?? schedule?.frequency ?? 'weekly';
+  const emails = localEmails ?? schedule?.recipients ?? [];
+
+  const setScheduledEnabled = (v: boolean) => setLocalEnabled(v);
+  const setScheduleFreq = (v: string) => setLocalFreq(v);
+  const setEmails = (v: string[]) => setLocalEmails(v);
   const { data: forecastRow } = useForecasts(selectedEntity.id);
   const { data: regRows, isLoading: regLoading } = useRegulatoryChanges();
 
