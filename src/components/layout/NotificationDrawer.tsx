@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { MOCK_NOTIFICATIONS, getRelativeTime } from '@/lib/mockData';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useDeleteNotification, useClearAllNotifications } from '@/hooks/use-supabase-data';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Radio, TrendingUp, CheckCircle, X, Trash2 } from 'lucide-react';
@@ -105,10 +106,28 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                 {t('Mark all read')}
               </Button>
               {notifications.length > 0 && (
-                <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={handleClearAll}>
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  {t('Clear all')}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs text-destructive">
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      {t('Clear all')}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('Clear all notifications?')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('This will permanently delete all your notifications. This action cannot be undone.')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        {t('Clear all')}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </div>
