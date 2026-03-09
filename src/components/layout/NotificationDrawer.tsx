@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -52,7 +53,9 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const deleteNotification = useDeleteNotification();
   const clearAll = useClearAllNotifications();
 
-  const notifications: NotificationItem[] = isDemoMode 
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const allNotifications: NotificationItem[] = isDemoMode 
     ? MOCK_NOTIFICATIONS 
     : (liveNotifications || []).map(n => ({
         id: n.id,
@@ -64,9 +67,16 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
         created_at: n.created_at ?? new Date().toISOString(),
       }));
 
+  const notifications = allNotifications.filter(n => !dismissedIds.has(n.id));
+  const [demoReadIds, setDemoReadIds] = useState<Set<string>>(new Set());
+
   const handleNotificationClick = (notification: NotificationItem) => {
-    if (!isDemoMode && !notification.read) {
-      markRead.mutate(notification.id);
+    if (!notification.read) {
+      if (isDemoMode) {
+        setDemoReadIds(prev => new Set(prev).add(notification.id));
+      } else {
+        markRead.mutate(notification.id);
+      }
     }
     if (notification.action_url) {
       navigate(notification.action_url);
@@ -76,25 +86,43 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDismissedIds(prev => new Set(prev).add(id));
+    } else {
+      deleteNotification.mutate(id);
+    }
+  };
+
+  const handleDeleteById = (id: string) => {
+    if (isDemoMode) {
+      setDismissedIds(prev => new Set(prev).add(id));
+    } else {
       deleteNotification.mutate(id);
     }
   };
 
   const handleMarkAllRead = () => {
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDemoReadIds(new Set(notifications.map(n => n.id)));
+    } else {
       markAllRead.mutate();
     }
   };
 
   const handleClearAll = () => {
-    if (!isDemoMode) {
+    if (isDemoMode) {
+      setDismissedIds(new Set(allNotifications.map(n => n.id)));
+    } else {
       clearAll.mutate();
     }
   };
 
-  const unreadNotifications = notifications.filter((n) => !n.read);
-  const readNotifications = notifications.filter((n) => n.read);
+  const effectiveNotifications = notifications.map(n => ({
+    ...n,
+    read: n.read || demoReadIds.has(n.id),
+  }));
+  const unreadNotifications = effectiveNotifications.filter((n) => !n.read);
+  const readNotifications = effectiveNotifications.filter((n) => n.read);
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -152,7 +180,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                     return (
                       <SwipeableNotification
                         key={notification.id}
-                        onDelete={() => !isDemoMode && deleteNotification.mutate(notification.id)}
+                        onDelete={() => handleDeleteById(notification.id)}
                       >
                         <div
                           className="relative group w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow cursor-pointer"
@@ -198,7 +226,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                     return (
                       <SwipeableNotification
                         key={notification.id}
-                        onDelete={() => !isDemoMode && deleteNotification.mutate(notification.id)}
+                        onDelete={() => handleDeleteById(notification.id)}
                       >
                         <div
                           className="relative group w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
