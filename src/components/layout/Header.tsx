@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { COUNTRY_FLAGS } from '@/lib/mockData';
 import { Globe, Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,8 @@ export function Header({ onMenuClick, onNotificationClick, unreadCount }: Header
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <ThemeToggle />
         {/* Language Toggle */}
         <Button
           variant="ghost"

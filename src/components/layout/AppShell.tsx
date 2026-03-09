@@ -7,6 +7,7 @@ import { MOCK_NOTIFICATIONS, COUNTRY_FLAGS, MOCK_DASHBOARD_DATA } from '@/lib/mo
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NotificationDrawer } from './NotificationDrawer';
+import { MobileNav } from './MobileNav';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -65,7 +66,7 @@ export function AppShell() {
 
       {/* Main Layout */}
       <div className={cn('flex flex-1 overflow-hidden', isRTL && 'flex-row-reverse')}>
-        {/* Sidebar */}
+        {/* Sidebar - Desktop only */}
         <div className="hidden lg:block">
           <Sidebar
             collapsed={sidebarCollapsed}
@@ -83,7 +84,7 @@ export function AppShell() {
             unreadCount={unreadCount}
           />
 
-          <main className="flex-1 overflow-y-auto bg-background">
+          <main className="flex-1 overflow-y-auto bg-background pb-20 lg:pb-0">
             <div className="max-w-[1280px] mx-auto p-4 lg:p-6">
               <div className="page-enter">
                 <Outlet />
@@ -92,6 +93,9 @@ export function AppShell() {
           </main>
         </div>
       </div>
+
+      {/* Mobile Bottom Nav */}
+      <MobileNav />
 
       {/* Notification Drawer */}
       <NotificationDrawer

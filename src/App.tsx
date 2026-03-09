@@ -6,11 +6,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { EntityProvider } from '@/contexts/EntityContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
+import { ThemeProvider } from '@/hooks/use-theme';
 import { AppShell } from '@/components/layout/AppShell';
+import { AIAssistant } from '@/components/ai/AIAssistant';
 
 // Pages
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
+import ResetPassword from '@/pages/ResetPassword';
 import Dashboard from '@/pages/Dashboard';
 import Compliance from '@/pages/Compliance';
 import Forecast from '@/pages/Forecast';
@@ -53,62 +56,70 @@ function AppRoutes() {
   const { user, isDemoMode } = useAuth();
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={
-        user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Login />
-      } />
-      <Route path="/signup" element={
-        user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Signup />
-      } />
+    <>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={
+          user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
+        <Route path="/signup" element={
+          user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Signup />
+        } />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected routes with app shell */}
-      <Route element={
-        <ProtectedRoute>
-          <EntityProvider>
-            <AppShell />
-          </EntityProvider>
-        </ProtectedRoute>
-      }>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/compliance" element={<Compliance />} />
-        <Route path="/forecast" element={<Forecast />} />
-        <Route path="/recommendations" element={<Recommendations />} />
-        <Route path="/employees" element={<Employees />} />
-        <Route path="/regulatory" element={<Regulatory />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/settings/*" element={<Settings />} />
-      </Route>
+        {/* Protected routes with app shell */}
+        <Route element={
+          <ProtectedRoute>
+            <EntityProvider>
+              <AppShell />
+            </EntityProvider>
+          </ProtectedRoute>
+        }>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/compliance" element={<Compliance />} />
+          <Route path="/forecast" element={<Forecast />} />
+          <Route path="/recommendations" element={<Recommendations />} />
+          <Route path="/employees" element={<Employees />} />
+          <Route path="/regulatory" element={<Regulatory />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings/*" element={<Settings />} />
+        </Route>
 
-      {/* Onboarding (protected but without app shell) */}
-      <Route path="/onboarding" element={
-        <ProtectedRoute>
-          <EntityProvider>
-            <Onboarding />
-          </EntityProvider>
-        </ProtectedRoute>
-      } />
+        {/* Onboarding (protected but without app shell) */}
+        <Route path="/onboarding" element={
+          <ProtectedRoute>
+            <EntityProvider>
+              <Onboarding />
+            </EntityProvider>
+          </ProtectedRoute>
+        } />
 
-      {/* Catch all */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* Catch all */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      
+      {/* AI Assistant - shown on protected routes */}
+      {(user || isDemoMode) && <AIAssistant />}
+    </>
   );
 }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <LanguageProvider>
-          <AuthProvider>
-            <AppRoutes />
-          </AuthProvider>
-        </LanguageProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <LanguageProvider>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </LanguageProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
