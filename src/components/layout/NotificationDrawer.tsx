@@ -16,6 +16,7 @@ import { SwipeableNotification } from './SwipeableNotification';
 interface NotificationDrawerProps {
   open: boolean;
   onClose: () => void;
+  onUnreadCountChange?: (count: number) => void;
 }
 
 const TYPE_ICONS: Record<NotificationType, typeof AlertTriangle> = {
