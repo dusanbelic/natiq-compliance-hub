@@ -5,6 +5,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { MOCK_NOTIFICATIONS, getRelativeTime } from '@/lib/mockData';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useDeleteNotification, useClearAllNotifications } from '@/hooks/use-supabase-data';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Radio, TrendingUp, CheckCircle, X, Trash2 } from 'lucide-react';
