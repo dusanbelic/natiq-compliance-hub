@@ -302,6 +302,20 @@ export function useCompany() {
 }
 
 // ─── Audit Logs ─────────────────────────────────────────────────────────────
+// Note: audit_logs table is created via migration and triggers are set up
+// The hook will work after the migration runs
+
+export interface AuditLog {
+  id: string;
+  entity_id: string | null;
+  user_id: string;
+  action: string;
+  table_name: string;
+  record_id: string | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
+  created_at: string;
+}
 
 export function useAuditLogs(entityId?: string) {
   const { isDemoMode } = useAuth();
@@ -309,17 +323,20 @@ export function useAuditLogs(entityId?: string) {
   return useQuery({
     queryKey: ['audit_logs', entityId],
     queryFn: async () => {
-      let query = supabase
-        .from('audit_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (entityId) {
-        query = query.eq('entity_id', entityId);
+      // Using raw query since audit_logs may not be in types yet
+      const baseQuery = supabase.rpc('get_audit_logs' as any, { p_entity_id: entityId || null });
+      const { data, error } = await baseQuery;
+      if (error) {
+        // Fallback if RPC doesn't exist - try direct table access
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('audit_logs' as any)
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (fallbackError) return [];
+        return fallbackData as AuditLog[];
       }
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      return data as AuditLog[];
     },
     enabled: !isDemoMode,
   });

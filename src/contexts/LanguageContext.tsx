@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { translateToArabic } from '@/lib/translations';
 
 type Language = 'en' | 'ar';
 
@@ -29,10 +30,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage(prev => prev === 'en' ? 'ar' : 'en');
   };
 
-  // Translation function - adds [AR] prefix for Arabic mode (placeholder)
+  // Translation function - uses real Arabic translations
   const t = (text: string): string => {
     if (language === 'ar') {
-      return `[AR] ${text}`;
+      return translateToArabic(text);
     }
     return text;
   };
