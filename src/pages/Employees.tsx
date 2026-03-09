@@ -21,6 +21,7 @@ import type { Employee } from '@/types/database';
 export default function Employees() {
   const { selectedEntity, employeesByEntity, loading: entityLoading, refreshEntityData } = useEntity();
   const { isDemoMode } = useAuth();
+  const { canEditEmployees, canDeleteEmployees } = usePermissions();
 
   // Use live data or mock data based on mode
   const liveEmployees = employeesByEntity[selectedEntity.id] || [];
