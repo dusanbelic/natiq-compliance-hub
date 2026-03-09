@@ -38,14 +38,14 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Dashboard', path: '/dashboard' },
-  { icon: BarChart3, label: 'Compliance Score', path: '/compliance' },
-  { icon: TrendingUp, label: 'Forecast', path: '/forecast' },
-  { icon: Lightbulb, label: 'Recommendations', path: '/recommendations' },
-  { icon: Users, label: 'Employees', path: '/employees' },
-  { icon: Radio, label: 'Regulatory Monitor', path: '/regulatory' },
-  { icon: FileText, label: 'Reports', path: '/reports' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: Home, label: 'Dashboard', path: '/dashboard', minRole: 'viewer' as const },
+  { icon: BarChart3, label: 'Compliance Score', path: '/compliance', minRole: 'viewer' as const },
+  { icon: TrendingUp, label: 'Forecast', path: '/forecast', minRole: 'viewer' as const },
+  { icon: Lightbulb, label: 'Recommendations', path: '/recommendations', minRole: 'viewer' as const },
+  { icon: Users, label: 'Employees', path: '/employees', minRole: 'viewer' as const },
+  { icon: Radio, label: 'Regulatory Monitor', path: '/regulatory', minRole: 'viewer' as const },
+  { icon: FileText, label: 'Reports', path: '/reports', minRole: 'viewer' as const },
+  { icon: Settings, label: 'Settings', path: '/settings', minRole: 'hr_manager' as const },
 ];
 
 export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount }: SidebarProps) {
