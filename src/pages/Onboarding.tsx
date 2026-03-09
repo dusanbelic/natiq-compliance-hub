@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { COUNTRY_FLAGS, COUNTRY_NAMES, INDUSTRY_SECTORS, EMPLOYEE_COUNT_BANDS, getNationalityFlag } from '@/lib/mockData';
-import { Check, ChevronRight, Upload, Database, Users, Plus, Trash2 } from 'lucide-react';
+import { Check, ChevronRight, Upload, Database, Users, Plus, Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Country } from '@/types/database';
 
 const STEPS = ['Set Up Entity', 'Add Employees', 'Complete'];
@@ -20,20 +22,106 @@ interface ManualEmployee {
   role: string;
 }
 
+// Map nationality code to whether they're a "national" of common GCC countries
+const NATIONAL_CODES: Record<string, string[]> = {
+  SA: ['SA'],
+  AE: ['AE'],
+  QA: ['QA'],
+  OM: ['OM'],
+};
+
 export default function Onboarding() {
   const navigate = useNavigate();
+  const { isDemoMode } = useAuth();
   const [step, setStep] = useState(0);
+  const [saving, setSaving] = useState(false);
   const [entity, setEntity] = useState({ name: '', country: '' as Country | '', industry: '', size: '' });
+  const [createdEntityId, setCreatedEntityId] = useState<string | null>(null);
   const [employeeTab, setEmployeeTab] = useState('csv');
   const [manualEmployees, setManualEmployees] = useState<ManualEmployee[]>([
     { id: '1', name: '', nationality: '', role: '' },
   ]);
 
-  const nextStep = () => {
-    if (step < 2) setStep(step + 1);
-    else {
-      toast.success('Setup complete!');
-      navigate('/dashboard');
+  const handleCreateEntity = async () => {
+    if (!entity.name || !entity.country) return;
+
+    if (isDemoMode) {
+      setStep(1);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Get current user's company_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.company_id) throw new Error('No company found');
+
+      const { data: newEntity, error } = await supabase
+        .from('entities')
+        .insert({
+          company_id: profile.company_id,
+          name: entity.name,
+          country: entity.country as Country,
+          industry_sector: entity.industry || null,
+          employee_count_band: entity.size || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCreatedEntityId(newEntity.id);
+      toast.success('Entity created successfully');
+      setStep(1);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create entity');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveManual = async () => {
+    const filled = manualEmployees.filter(e => e.name && e.nationality);
+    if (filled.length === 0) {
+      toast.error('Please fill in at least one employee');
+      return;
+    }
+
+    if (isDemoMode || !createdEntityId) {
+      toast.success(`${filled.length} employee(s) saved`);
+      setStep(2);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const countryNationals = NATIONAL_CODES[entity.country] || [];
+      const rows = filled.map(e => ({
+        entity_id: createdEntityId,
+        full_name: e.name,
+        nationality: e.nationality,
+        is_national: countryNationals.includes(e.nationality),
+        job_title: e.role || null,
+        contract_type: 'full_time' as const,
+        counts_toward_quota: true,
+      }));
+
+      const { error } = await supabase.from('employees').insert(rows);
+      if (error) throw error;
+
+      toast.success(`${filled.length} employee(s) added`);
+      setStep(2);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save employees');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -53,16 +141,6 @@ export default function Onboarding() {
 
   const updateManualEmployee = (id: string, field: keyof ManualEmployee, value: string) => {
     setManualEmployees(manualEmployees.map(e => e.id === id ? { ...e, [field]: value } : e));
-  };
-
-  const handleSaveManual = () => {
-    const filled = manualEmployees.filter(e => e.name && e.nationality);
-    if (filled.length === 0) {
-      toast.error('Please fill in at least one employee');
-      return;
-    }
-    toast.success(`${filled.length} employee(s) saved`);
-    nextStep();
   };
 
   return (
@@ -126,8 +204,8 @@ export default function Onboarding() {
                       <SelectContent>{EMPLOYEE_COUNT_BANDS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
-                  <Button className="w-full" onClick={nextStep} disabled={!entity.name || !entity.country}>
-                    Continue
+                  <Button className="w-full" onClick={handleCreateEntity} disabled={!entity.name || !entity.country || saving}>
+                    {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating...</> : 'Continue'}
                   </Button>
                 </CardContent>
               </>
@@ -226,14 +304,14 @@ export default function Onboarding() {
                       <Button variant="outline" onClick={addManualEmployee} disabled={manualEmployees.length >= 10}>
                         <Plus className="w-4 h-4 mr-1" />Add Another
                       </Button>
-                      <Button className="w-full" onClick={handleSaveManual}>
-                        Save & Continue
+                      <Button className="w-full" onClick={handleSaveManual} disabled={saving}>
+                        {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : 'Save & Continue'}
                       </Button>
                     </TabsContent>
                   </Tabs>
 
                   <p className="text-sm text-muted-foreground text-center">You can add more employees later</p>
-                  <Button variant="outline" className="w-full" onClick={nextStep}>
+                  <Button variant="outline" className="w-full" onClick={() => setStep(2)}>
                     Skip for now
                   </Button>
                 </CardContent>
@@ -251,7 +329,7 @@ export default function Onboarding() {
                   <p className="text-muted-foreground">
                     Your entity <strong>{entity.name || 'New Entity'}</strong> has been created. View your dashboard to see your compliance score.
                   </p>
-                  <Button className="w-full" onClick={nextStep}>
+                  <Button className="w-full" onClick={() => { toast.success('Setup complete!'); navigate('/dashboard'); }}>
                     View your Dashboard →
                   </Button>
                 </CardContent>
