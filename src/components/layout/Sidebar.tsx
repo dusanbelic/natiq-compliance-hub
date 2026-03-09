@@ -153,7 +153,10 @@ export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-2">
         <nav className="space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter(item => {
+            if (item.path === '/settings' && !canViewSettings) return false;
+            return true;
+          }).map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
               <NavLink
