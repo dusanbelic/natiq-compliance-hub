@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompany, useUpdateCompany, useEntities, useUserProfile, useUpdateUserProfile, useTeamMembers, useTeamMemberRoles } from '@/hooks/use-supabase-data';
+import { usePermissions } from '@/hooks/use-permissions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PLANS = [
@@ -30,6 +31,7 @@ const INVOICES = [
 
 export default function Settings() {
   const { isDemoMode, user } = useAuth();
+  const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
 
   // Live data hooks
@@ -133,13 +135,13 @@ export default function Settings() {
     <div className="space-y-6">
       <h1 className="font-sora font-bold text-2xl">Settings</h1>
 
-      <Tabs defaultValue="company">
+      <Tabs defaultValue="profile">
         <TabsList>
-          <TabsTrigger value="company">Company Profile</TabsTrigger>
+          {canEditCompany && <TabsTrigger value="company">Company Profile</TabsTrigger>}
           <TabsTrigger value="profile">My Profile</TabsTrigger>
-          <TabsTrigger value="team">Team Members</TabsTrigger>
+          {canManageTeam && <TabsTrigger value="team">Team Members</TabsTrigger>}
           <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="billing">Billing & Plan</TabsTrigger>
+          {canManageBilling && <TabsTrigger value="billing">Billing & Plan</TabsTrigger>}
         </TabsList>
 
         {/* Company */}

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePermissions } from '@/hooks/use-permissions';
 import { COUNTRY_FLAGS, MOCK_DASHBOARD_DATA } from '@/lib/mockData';
 import {
   Home,
@@ -37,14 +38,14 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { icon: Home, label: 'Dashboard', path: '/dashboard' },
-  { icon: BarChart3, label: 'Compliance Score', path: '/compliance' },
-  { icon: TrendingUp, label: 'Forecast', path: '/forecast' },
-  { icon: Lightbulb, label: 'Recommendations', path: '/recommendations' },
-  { icon: Users, label: 'Employees', path: '/employees' },
-  { icon: Radio, label: 'Regulatory Monitor', path: '/regulatory' },
-  { icon: FileText, label: 'Reports', path: '/reports' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
+  { icon: Home, label: 'Dashboard', path: '/dashboard', minRole: 'viewer' as const },
+  { icon: BarChart3, label: 'Compliance Score', path: '/compliance', minRole: 'viewer' as const },
+  { icon: TrendingUp, label: 'Forecast', path: '/forecast', minRole: 'viewer' as const },
+  { icon: Lightbulb, label: 'Recommendations', path: '/recommendations', minRole: 'viewer' as const },
+  { icon: Users, label: 'Employees', path: '/employees', minRole: 'viewer' as const },
+  { icon: Radio, label: 'Regulatory Monitor', path: '/regulatory', minRole: 'viewer' as const },
+  { icon: FileText, label: 'Reports', path: '/reports', minRole: 'viewer' as const },
+  { icon: Settings, label: 'Settings', path: '/settings', minRole: 'hr_manager' as const },
 ];
 
 export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount }: SidebarProps) {
@@ -52,6 +53,7 @@ export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount 
   const { entities, selectedEntityId, setSelectedEntityId, selectedEntity } = useEntity();
   const { profile, signOut, isDemoMode } = useAuth();
   const { t } = useLanguage();
+  const { canViewSettings } = usePermissions();
   const [entityDropdownOpen, setEntityDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -151,7 +153,10 @@ export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-2">
         <nav className="space-y-1">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter(item => {
+            if (item.path === '/settings' && !canViewSettings) return false;
+            return true;
+          }).map((item) => {
             const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
             return (
               <NavLink

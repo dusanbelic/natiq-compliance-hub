@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/use-permissions';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
 import { Search, Plus, Upload, Check, X, Trash2, Users, Download } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
@@ -20,6 +21,7 @@ import type { Employee } from '@/types/database';
 export default function Employees() {
   const { selectedEntity, employeesByEntity, loading: entityLoading, refreshEntityData } = useEntity();
   const { isDemoMode } = useAuth();
+  const { canEditEmployees, canDeleteEmployees } = usePermissions();
 
   // Use live data or mock data based on mode
   const liveEmployees = employeesByEntity[selectedEntity.id] || [];
@@ -96,12 +98,16 @@ export default function Employees() {
           <Button variant="outline" size="sm" onClick={() => exportEmployeesCSV(employees, selectedEntity.name)}>
             <Download className="w-4 h-4 mr-2" />Export CSV
           </Button>
-          <Button variant="outline" onClick={() => setCsvOpen(true)}>
-            <Upload className="w-4 h-4 mr-2" />Import CSV
-          </Button>
-          <Button onClick={handleAddEmployee}>
-            <Plus className="w-4 h-4 mr-2" />Add Employee
-          </Button>
+          {canEditEmployees && (
+            <>
+              <Button variant="outline" onClick={() => setCsvOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />Import CSV
+              </Button>
+              <Button onClick={handleAddEmployee}>
+                <Plus className="w-4 h-4 mr-2" />Add Employee
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -182,8 +188,9 @@ export default function Employees() {
                       <td className="p-3 text-center">
                         {emp.counts_toward_quota ? <Check className="w-4 h-4 text-status-green mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" />}
                       </td>
-                      <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
-                        <AlertDialog>
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {canDeleteEmployees && (
+                          <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
@@ -202,7 +209,8 @@ export default function Employees() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </td>
+                          )}
+                        </td>
                     </tr>
                   ))}
                 </tbody>
