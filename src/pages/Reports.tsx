@@ -14,7 +14,7 @@ import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/l
 import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportEmployeesCSV } from '@/lib/export-utils';
 import { useAuditLogs, type AuditLog, useForecasts, useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { getRelativeTime } from '@/lib/mockData';
-import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
+import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import type { Employee, RegulatoryChange } from '@/types/database';
 import type { Tables } from '@/integrations/supabase/types';
 
