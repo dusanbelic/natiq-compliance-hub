@@ -4,20 +4,40 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEntity } from '@/contexts/EntityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
 import { Search, Plus, Upload, Check, X, Trash2, Users, Download } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
-import { EmptyState } from '@/components/ui/LoadingSkeleton';
+import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
+import { useDeleteEmployee } from '@/hooks/use-supabase-data';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
-  const { selectedEntity } = useEntity();
-  const employees = MOCK_EMPLOYEES[selectedEntity.id] || [];
+  const { selectedEntity, employeesByEntity, loading: entityLoading, refreshEntityData } = useEntity();
+  const { isDemoMode } = useAuth();
+
+  // Use live data or mock data based on mode
+  const liveEmployees = employeesByEntity[selectedEntity.id] || [];
+  const mockEmployees = MOCK_EMPLOYEES[selectedEntity.id] || [];
+  const employees: Employee[] = isDemoMode
+    ? mockEmployees
+    : liveEmployees.map(e => ({
+        ...e,
+        contract_type: e.contract_type ?? 'full_time',
+        counts_toward_quota: e.counts_toward_quota ?? true,
+        is_national: e.is_national ?? false,
+        department: e.department ?? undefined,
+        job_title: e.job_title ?? undefined,
+        salary_band: e.salary_band ?? undefined,
+        start_date: e.start_date ?? undefined,
+        end_date: e.end_date ?? undefined,
+      } as Employee));
+
   const [search, setSearch] = useState('');
   const [natFilter, setNatFilter] = useState<'all' | 'nationals' | 'expats'>('all');
   const [deptFilter, setDeptFilter] = useState<string>('all');
@@ -25,6 +45,8 @@ export default function Employees() {
   const [drawerEmployee, setDrawerEmployee] = useState<Employee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
+
+  const deleteEmployee = useDeleteEmployee();
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
@@ -48,9 +70,21 @@ export default function Employees() {
     setFormOpen(true);
   };
 
-  const handleDelete = (emp: Employee) => {
-    toast.success(`${emp.full_name} has been removed`);
+  const handleDelete = async (emp: Employee) => {
+    if (isDemoMode) {
+      toast.success(`${emp.full_name} has been removed`);
+      return;
+    }
+    try {
+      await deleteEmployee.mutateAsync(emp.id);
+      toast.success(`${emp.full_name} has been removed`);
+      refreshEntityData();
+    } catch {
+      toast.error('Failed to delete employee');
+    }
   };
+
+  const isLoading = !isDemoMode && entityLoading;
 
   return (
     <div className="space-y-6">
@@ -94,7 +128,13 @@ export default function Employees() {
         </Select>
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <Card className="shadow-card">
+          <CardContent className="p-4">
+            <TableSkeleton rows={8} />
+          </CardContent>
+        </Card>
+      ) : filtered.length === 0 ? (
         <EmptyState
           icon={Users}
           title="No employees found"
@@ -173,9 +213,9 @@ export default function Employees() {
       )}
 
       {/* Dialogs */}
-      <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => toast.success(`${data.length} employees imported`)} />
+      <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => { toast.success(`${data.length} employees imported`); refreshEntityData(); }} />
       <EmployeeDrawer employee={drawerEmployee} open={!!drawerEmployee} onClose={() => setDrawerEmployee(null)} onEdit={handleEditFromDrawer} />
-      <EmployeeFormDialog open={formOpen} onClose={() => setFormOpen(false)} employee={editEmployee} onSave={() => {}} />
+      <EmployeeFormDialog open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} />
     </div>
   );
 }
