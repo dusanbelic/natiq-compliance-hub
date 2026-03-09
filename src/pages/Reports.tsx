@@ -129,17 +129,17 @@ export default function Reports() {
       <h1 className="font-sora font-bold text-xl sm:text-2xl">Reports</h1>
 
       {/* Report Types */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {REPORTS.map((report) => (
           <Card key={report.id} className="shadow-card">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                  <report.icon className="w-6 h-6 text-primary" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-accent flex items-center justify-center shrink-0">
+                  <report.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1">{report.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{report.desc}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold mb-1 text-sm sm:text-base">{report.title}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground mb-3 line-clamp-2">{report.desc}</p>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -147,7 +147,7 @@ export default function Reports() {
                       disabled={generating === report.id}
                     >
                       {generating === report.id ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                      {generating === report.id ? 'Generating...' : 'PDF'}
+                      {generating === report.id ? 'Wait...' : 'PDF'}
                     </Button>
                     <Button
                       size="sm"
