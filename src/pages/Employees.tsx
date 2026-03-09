@@ -5,13 +5,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEntity } from '@/contexts/EntityContext';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
-import { Search, Plus, Upload, Check, X, Trash2, Users } from 'lucide-react';
+import { Search, Plus, Upload, Check, X, Trash2, Users, Download } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
 import { EmptyState } from '@/components/ui/LoadingSkeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import { exportEmployeesCSV } from '@/lib/export-utils';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
