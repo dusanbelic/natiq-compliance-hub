@@ -301,6 +301,77 @@ export function useCompany() {
   });
 }
 
+export function useUpdateCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<Tables<'companies'>> & { id: string }) => {
+      const { error } = await supabase
+        .from('companies')
+        .update(updates as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['company'] });
+    },
+  });
+}
+
+// ─── Update User Profile ────────────────────────────────────────────────────
+
+export function useUpdateUserProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: { id: string; full_name?: string; language_pref?: string; notification_email?: boolean; notification_in_app?: boolean }) => {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update(updates as any)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['user_profile', variables.id] });
+    },
+  });
+}
+
+// ─── Team Members ───────────────────────────────────────────────────────────
+
+export function useTeamMembers() {
+  const { isDemoMode } = useAuth();
+
+  return useQuery({
+    queryKey: ['team_members'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, company_id, created_at')
+        .order('created_at');
+      if (error) throw error;
+      return data as Array<{ id: string; full_name: string | null; company_id: string | null; created_at: string | null }>;
+    },
+    enabled: !isDemoMode,
+  });
+}
+
+export function useTeamMemberRoles(userIds: string[]) {
+  const { isDemoMode } = useAuth();
+
+  return useQuery({
+    queryKey: ['team_member_roles', userIds],
+    queryFn: async () => {
+      if (userIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+      if (error) throw error;
+      return data as Array<{ user_id: string; role: string }>;
+    },
+    enabled: !isDemoMode && userIds.length > 0,
+  });
+}
+
 // ─── Audit Logs ─────────────────────────────────────────────────────────────
 // Note: audit_logs table is created via migration and triggers are set up
 
