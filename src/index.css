@@ -2,95 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ═══════════════════════════════════════════════════════════════════════════
+   NatIQ Design System
+   ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ─── Semantic tokens (shadcn compatible) ─── */
+    --background: 214 32% 96%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 180 79% 26%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 211 54% 23%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 213 31% 91%;
+    --muted-foreground: 215 20% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 180 44% 93%;
+    --accent-foreground: 180 79% 26%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 73% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 213 31% 87%;
+    --input: 213 31% 87%;
+    --ring: 180 79% 26%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* ─── NatIQ Brand Colors ─── */
+    --navy: 211 54% 23%;
+    --navy-light: 212 46% 27%;
+    --teal: 180 79% 26%;
+    --teal-light: 180 44% 93%;
+    --amber: 37 92% 44%;
+    --amber-light: 48 96% 89%;
+    --status-red: 0 73% 51%;
+    --status-red-light: 0 93% 94%;
+    --status-green: 161 94% 30%;
+    --status-green-light: 152 76% 90%;
+    --slate-900: 222 47% 11%;
+    --slate-600: 215 20% 36%;
+    --slate-400: 214 14% 53%;
+    --slate-300: 213 31% 85%;
+    --slate-100: 214 32% 96%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* ─── Sidebar ─── */
+    --sidebar-background: 211 54% 23%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 180 79% 26%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 212 46% 27%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 212 40% 28%;
+    --sidebar-ring: 180 79% 26%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 222 47% 8%;
+    --foreground: 214 32% 96%;
+    --card: 222 47% 11%;
+    --card-foreground: 214 32% 96%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 214 32% 96%;
+    --primary: 180 79% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 211 54% 30%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 215 20% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 180 40% 20%;
+    --accent-foreground: 180 79% 60%;
+    --destructive: 0 73% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 180 79% 40%;
   }
 }
 
@@ -99,7 +95,151 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'DM Sans', sans-serif;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sora', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* ─── Typography ─── */
+  .font-sora {
+    font-family: 'Sora', sans-serif;
+  }
+
+  .font-dm-sans {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .font-jetbrains {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ─── Shadows ─── */
+  .shadow-card {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .shadow-elevated {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+  }
+
+  /* ─── Status Badges ─── */
+  .badge-compliant {
+    @apply bg-[hsl(152,76%,90%)] text-[hsl(161,94%,30%)];
+  }
+
+  .badge-at-risk {
+    @apply bg-[hsl(48,96%,89%)] text-[hsl(37,92%,44%)];
+  }
+
+  .badge-non-compliant {
+    @apply bg-[hsl(0,93%,94%)] text-[hsl(0,73%,51%)];
+  }
+
+  .badge-unknown {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  /* ─── Priority Badges ─── */
+  .badge-critical {
+    @apply bg-[hsl(0,93%,94%)] text-[hsl(0,73%,51%)] font-semibold;
+  }
+
+  .badge-important {
+    @apply bg-[hsl(48,96%,89%)] text-[hsl(37,92%,44%)] font-semibold;
+  }
+
+  .badge-optional {
+    @apply bg-muted text-muted-foreground font-medium;
+  }
+
+  /* ─── Impact Badges ─── */
+  .badge-high-impact {
+    @apply bg-[hsl(0,93%,94%)] text-[hsl(0,73%,51%)];
+  }
+
+  .badge-medium-impact {
+    @apply bg-[hsl(48,96%,89%)] text-[hsl(37,92%,44%)];
+  }
+
+  .badge-low-impact {
+    @apply bg-[hsl(152,76%,90%)] text-[hsl(161,94%,30%)];
+  }
+
+  /* ─── Effort Level ─── */
+  .badge-effort-low {
+    @apply bg-[hsl(152,76%,90%)] text-[hsl(161,94%,30%)];
+  }
+
+  .badge-effort-medium {
+    @apply bg-[hsl(48,96%,89%)] text-[hsl(37,92%,44%)];
+  }
+
+  .badge-effort-high {
+    @apply bg-[hsl(0,93%,94%)] text-[hsl(0,73%,51%)];
+  }
+
+  /* ─── Page Animations ─── */
+  .page-enter {
+    animation: pageEnter 150ms ease-out;
+  }
+
+  @keyframes pageEnter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ─── Ring Animation ─── */
+  .animate-ring {
+    animation: ringDraw 800ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @keyframes ringDraw {
+    from {
+      stroke-dashoffset: var(--circumference, 440);
+    }
+    to {
+      stroke-dashoffset: var(--offset, 0);
+    }
+  }
+
+  /* ─── Chart Animation ─── */
+  .animate-chart-line {
+    animation: chartDraw 600ms ease-out forwards;
+  }
+
+  @keyframes chartDraw {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* ─── Skeleton Loading ─── */
+  .skeleton {
+    @apply bg-muted animate-pulse rounded;
+  }
+
+  /* ─── Compliance Gain Chip ─── */
+  .chip-gain {
+    @apply bg-[hsl(180,44%,93%)] text-[hsl(180,79%,26%)] font-jetbrains font-semibold px-2 py-0.5 rounded-full text-xs;
   }
 }
