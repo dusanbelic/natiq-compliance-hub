@@ -269,6 +269,8 @@ export function EntityProvider({ children }: { children: ReactNode }) {
         atRiskEntities,
         loading,
         allScores,
+        employeesByEntity,
+        refreshEntityData,
       }}
     >
       {children}
