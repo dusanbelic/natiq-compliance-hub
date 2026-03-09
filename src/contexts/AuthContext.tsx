@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import type { UserProfile } from '@/types/database';
+import type { UserProfile, UserRole } from '@/types/database';
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +29,28 @@ const DEMO_PROFILE: UserProfile = {
   created_at: new Date().toISOString(),
 };
 
+async function fetchUserProfile(userId: string): Promise<UserProfile> {
+  // Fetch profile and role in parallel
+  const [profileRes, roleRes] = await Promise.all([
+    supabase.from('user_profiles').select('*').eq('id', userId).single(),
+    supabase.from('user_roles').select('role').eq('user_id', userId).limit(1).single(),
+  ]);
+
+  const p = profileRes.data;
+  const r = roleRes.data;
+
+  return {
+    id: userId,
+    company_id: p?.company_id ?? null,
+    full_name: p?.full_name ?? 'User',
+    role: (r?.role as UserRole) ?? 'hr_manager',
+    language_pref: (p?.language_pref as 'en' | 'ar') ?? 'en',
+    notification_email: p?.notification_email ?? true,
+    notification_in_app: p?.notification_in_app ?? true,
+    created_at: p?.created_at ?? new Date().toISOString(),
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -39,29 +61,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         
         if (newSession?.user) {
-          // Exit demo mode when real user logs in
           setIsDemoMode(false);
           localStorage.removeItem('natiq_demo_mode');
           
-          // For now, use a simple profile based on user metadata
-          // Real profile fetch will be added when table exists
-          setProfile({
-            id: newSession.user.id,
-            company_id: null,
-            full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
-            role: 'hr_manager',
-            language_pref: 'en',
-            notification_email: true,
-            notification_in_app: true,
-            created_at: newSession.user.created_at ?? new Date().toISOString(),
-          });
+          // Fetch real profile + role from database
+          try {
+            const userProfile = await fetchUserProfile(newSession.user.id);
+            setProfile(userProfile);
+          } catch {
+            // Fallback if fetch fails
+            setProfile({
+              id: newSession.user.id,
+              company_id: null,
+              full_name: newSession.user.user_metadata?.full_name ?? newSession.user.email?.split('@')[0] ?? 'User',
+              role: 'hr_manager',
+              language_pref: 'en',
+              notification_email: true,
+              notification_in_app: true,
+              created_at: newSession.user.created_at ?? new Date().toISOString(),
+            });
+          }
         } else {
           setProfile(null);
         }
@@ -70,31 +95,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
       
       if (existingSession?.user) {
-        setProfile({
-          id: existingSession.user.id,
-          company_id: null,
-          full_name: existingSession.user.user_metadata?.full_name ?? existingSession.user.email?.split('@')[0] ?? 'User',
-          role: 'hr_manager',
-          language_pref: 'en',
-          notification_email: true,
-          notification_in_app: true,
-          created_at: existingSession.user.created_at ?? new Date().toISOString(),
-        });
+        try {
+          const userProfile = await fetchUserProfile(existingSession.user.id);
+          setProfile(userProfile);
+        } catch {
+          setProfile({
+            id: existingSession.user.id,
+            company_id: null,
+            full_name: existingSession.user.user_metadata?.full_name ?? existingSession.user.email?.split('@')[0] ?? 'User',
+            role: 'hr_manager',
+            language_pref: 'en',
+            notification_email: true,
+            notification_in_app: true,
+            created_at: existingSession.user.created_at ?? new Date().toISOString(),
+          });
+        }
       }
       
-      // If no session and not demo mode, just set loading to false
       if (!existingSession && !isDemoMode) {
         setLoading(false);
       }
     });
 
-    // If demo mode is active, set up demo profile
     if (isDemoMode) {
       setProfile(DEMO_PROFILE);
       setLoading(false);
