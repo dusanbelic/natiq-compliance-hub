@@ -99,7 +99,9 @@ function AppRoutes() {
         <Route element={
           <ProtectedRoute>
             <EntityProvider>
-              <AppShell />
+              <OnboardingGuard>
+                <AppShell />
+              </OnboardingGuard>
             </EntityProvider>
           </ProtectedRoute>
         }>
