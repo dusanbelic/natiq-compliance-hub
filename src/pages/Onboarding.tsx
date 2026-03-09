@@ -267,16 +267,16 @@ export default function Onboarding() {
                       <p className="text-sm text-muted-foreground">Quick-add up to 10 employees. You can add more later.</p>
                       <div className="space-y-3 max-h-64 overflow-y-auto">
                         {manualEmployees.map((emp, idx) => (
-                          <div key={emp.id} className="flex gap-2 items-center">
+                          <div key={emp.id} className="flex flex-wrap sm:flex-nowrap gap-2 items-center">
                             <span className="text-xs text-muted-foreground w-4">{idx + 1}</span>
                             <Input
                               placeholder="Full Name"
                               value={emp.name}
                               onChange={(e) => updateManualEmployee(emp.id, 'name', e.target.value)}
-                              className="flex-1"
+                              className="flex-1 min-w-[120px]"
                             />
                             <Select value={emp.nationality} onValueChange={(v) => updateManualEmployee(emp.id, 'nationality', v)}>
-                              <SelectTrigger className="w-28"><SelectValue placeholder="Nat." /></SelectTrigger>
+                              <SelectTrigger className="w-24 sm:w-28"><SelectValue placeholder="Nat." /></SelectTrigger>
                               <SelectContent>
                                 {['SA', 'AE', 'QA', 'OM', 'IN', 'EG', 'PK', 'PH', 'GB'].map((n) => (
                                   <SelectItem key={n} value={n}>{getNationalityFlag(n)} {n}</SelectItem>
@@ -287,7 +287,7 @@ export default function Onboarding() {
                               placeholder="Role"
                               value={emp.role}
                               onChange={(e) => updateManualEmployee(emp.id, 'role', e.target.value)}
-                              className="w-32"
+                              className="w-28 sm:w-32"
                             />
                             <Button
                               variant="ghost"
