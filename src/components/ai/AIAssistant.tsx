@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MessageCircle, X, Send, Bot, User, Sparkles, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -19,111 +21,93 @@ const SAMPLE_QUESTIONS = [
   "How do I improve my Emiratisation ratio?",
 ];
 
-const COMPLIANCE_KNOWLEDGE: Record<string, string> = {
-  "nitaqat": `**Nitaqat** is Saudi Arabia's Saudisation program that classifies companies into color bands based on their Saudi national employment ratio:
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/compliance-chat`;
 
-• **Platinum** (>28%): Premium benefits, fast visa processing
-• **Green** (15-28%): Standard operations allowed
-• **Yellow** (10-15%): Restricted hiring, limited renewals
-• **Red** (<10%): Cannot hire, no visa renewals
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: Array<{ role: string; content: string }>;
+  onDelta: (text: string) => void;
+  onDone: () => void;
+  onError: (error: string) => void;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
 
-The target varies by industry sector and company size.`,
-  
-  "emiratisation": `**Emiratisation** (Nafis) is the UAE's nationalization program requiring private sector companies with 50+ employees to maintain a minimum ratio of Emirati nationals:
-
-• **Current target**: 10% (as of 2025)
-• **Annual increase**: 2% per year
-• **Penalties**: AED 96,000+ per missing Emirati
-• **Benefits**: Salary subsidies up to AED 9,000/month per Emirati hire`,
-
-  "qatarisation": `**Qatarisation** is Qatar's workforce nationalization initiative:
-
-• **Oil & Gas**: 30% minimum
-• **Other sectors**: 20% minimum
-• **Banking**: 50% minimum for customer-facing roles
-• **Quarterly reporting** required via ADLSA portal`,
-
-  "omanisation": `**Omanisation** requires private sector companies to employ Omani nationals:
-
-• **Hospitality**: 30% minimum
-• **General sectors**: 20% minimum
-• **Banking/Finance**: 45% minimum
-• **Annual targets** set by Ministry of Labour`,
-
-  "calculate": `**Compliance ratio** is calculated as:
-
-\`Ratio = (Qualifying Nationals ÷ Total Qualifying Workforce) × 100\`
-
-**What counts:**
-✓ Full-time nationals (100% weight)
-✓ Part-time nationals (50% weight typically)
-✗ Contract workers <90 days
-✗ Employees on unpaid leave
-
-The exact rules vary by country and program.`,
-
-  "penalties": `**Non-compliance penalties vary by country:**
-
-🇸🇦 **Saudi (Nitaqat)**:
-• Block on visa services
-• Cannot renew work permits
-• Business license restrictions
-
-🇦🇪 **UAE (Emiratisation)**:
-• AED 96,000/year per missing Emirati (2024)
-• Increasing to AED 108,000 (2025)
-
-🇶🇦 **Qatar**:
-• Work permit suspension
-• Government contract exclusion
-
-🇴🇲 **Oman**:
-• Fines and license restrictions`,
-
-  "improve": `**To improve your compliance ratio:**
-
-1. **Hire nationals** — Post on local job portals (Jadara, Tawteen)
-2. **Reclassify** — Convert part-time nationals to full-time
-3. **Review contracts** — Convert qualifying contractors to employees
-4. **Reduce non-qualifying staff** — Natural attrition of expat roles
-5. **Training programs** — Enroll nationals in government programs for credits
-
-Each 1 national hire typically adds 0.5-1.5% to your ratio depending on company size.`,
-};
-
-function findAnswer(question: string): string {
-  const q = question.toLowerCase();
-  
-  if (q.includes('nitaqat') || q.includes('saudi') || q.includes('saudisation')) {
-    return COMPLIANCE_KNOWLEDGE.nitaqat;
+  if (!resp.ok) {
+    const body = await resp.json().catch(() => ({ error: "Request failed" }));
+    onError(body.error || `Error ${resp.status}`);
+    return;
   }
-  if (q.includes('emirat') || q.includes('uae') || q.includes('nafis')) {
-    return COMPLIANCE_KNOWLEDGE.emiratisation;
-  }
-  if (q.includes('qatar')) {
-    return COMPLIANCE_KNOWLEDGE.qatarisation;
-  }
-  if (q.includes('oman')) {
-    return COMPLIANCE_KNOWLEDGE.omanisation;
-  }
-  if (q.includes('calculat') || q.includes('ratio') || q.includes('formula')) {
-    return COMPLIANCE_KNOWLEDGE.calculate;
-  }
-  if (q.includes('penalt') || q.includes('fine') || q.includes('non-complian')) {
-    return COMPLIANCE_KNOWLEDGE.penalties;
-  }
-  if (q.includes('improve') || q.includes('increase') || q.includes('boost') || q.includes('raise')) {
-    return COMPLIANCE_KNOWLEDGE.improve;
-  }
-  
-  return `I can help you with questions about GCC nationalization programs:
 
-• **Nitaqat** (Saudi Arabia)
-• **Emiratisation** (UAE)
-• **Qatarisation** (Qatar)
-• **Omanisation** (Oman)
+  if (!resp.body) {
+    onError("No response body");
+    return;
+  }
 
-Try asking about specific programs, compliance calculations, penalties, or how to improve your ratio.`;
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let textBuffer = "";
+  let streamDone = false;
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    textBuffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+      let line = textBuffer.slice(0, newlineIndex);
+      textBuffer = textBuffer.slice(newlineIndex + 1);
+
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") continue;
+      if (!line.startsWith("data: ")) continue;
+
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") {
+        streamDone = true;
+        break;
+      }
+
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch {
+        textBuffer = line + "\n" + textBuffer;
+        break;
+      }
+    }
+  }
+
+  // Flush remaining
+  if (textBuffer.trim()) {
+    for (let raw of textBuffer.split("\n")) {
+      if (!raw) continue;
+      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+      if (raw.startsWith(":") || raw.trim() === "") continue;
+      if (!raw.startsWith("data: ")) continue;
+      const jsonStr = raw.slice(6).trim();
+      if (jsonStr === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+        if (content) onDelta(content);
+      } catch { /* ignore */ }
+    }
+  }
+
+  onDone();
 }
 
 export function AIAssistant() {
@@ -138,9 +122,10 @@ export function AIAssistant() {
     },
   ]);
   const [input, setInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const assistantContentRef = useRef('');
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -154,8 +139,8 @@ export function AIAssistant() {
     }
   }, [open, minimized]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
+  const sendMessage = useCallback(async (text: string) => {
+    if (!text.trim() || isStreaming) return;
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -166,21 +151,63 @@ export function AIAssistant() {
 
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
-    setIsTyping(true);
+    setIsStreaming(true);
+    assistantContentRef.current = '';
 
-    // Simulate AI response
-    setTimeout(() => {
-      const answer = findAnswer(text);
-      const assistantMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: answer,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      setIsTyping(false);
-    }, 800 + Math.random() * 500);
-  };
+    // Build conversation history for context
+    const history = messages
+      .filter((m) => m.id !== '1') // skip initial greeting from history
+      .map((m) => ({ role: m.role, content: m.content }));
+    history.push({ role: 'user', content: text.trim() });
+
+    const upsertAssistant = (chunk: string) => {
+      assistantContentRef.current += chunk;
+      const currentContent = assistantContentRef.current;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && last.id.startsWith('stream-')) {
+          return prev.map((m, i) =>
+            i === prev.length - 1 ? { ...m, content: currentContent } : m
+          );
+        }
+        return [
+          ...prev,
+          {
+            id: `stream-${Date.now()}`,
+            role: 'assistant' as const,
+            content: currentContent,
+            timestamp: new Date(),
+          },
+        ];
+      });
+    };
+
+    try {
+      await streamChat({
+        messages: history,
+        onDelta: upsertAssistant,
+        onDone: () => setIsStreaming(false),
+        onError: (error) => {
+          setIsStreaming(false);
+          toast.error(error);
+          // Add error message
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `err-${Date.now()}`,
+              role: 'assistant',
+              content: `Sorry, I encountered an error: ${error}. Please try again.`,
+              timestamp: new Date(),
+            },
+          ]);
+        },
+      });
+    } catch (e) {
+      console.error('Stream error:', e);
+      setIsStreaming(false);
+      toast.error('Failed to connect to AI assistant');
+    }
+  }, [isStreaming, messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,7 +280,13 @@ export function AIAssistant() {
                     : 'bg-muted'
                 )}
               >
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+                {msg.role === 'assistant' ? (
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                )}
               </div>
               {msg.role === 'user' && (
                 <div className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center shrink-0">
@@ -262,7 +295,7 @@ export function AIAssistant() {
               )}
             </div>
           ))}
-          {isTyping && (
+          {isStreaming && !messages[messages.length - 1]?.id.startsWith('stream-') && (
             <div className="flex gap-2">
               <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
                 <Bot className="w-4 h-4 text-primary" />
@@ -305,8 +338,9 @@ export function AIAssistant() {
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about compliance..."
           className="flex-1"
+          disabled={isStreaming}
         />
-        <Button type="submit" size="icon" disabled={!input.trim() || isTyping}>
+        <Button type="submit" size="icon" disabled={!input.trim() || isStreaming}>
           <Send className="w-4 h-4" />
         </Button>
       </form>
