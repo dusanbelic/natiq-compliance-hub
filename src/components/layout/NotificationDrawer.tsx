@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Radio, TrendingUp, CheckCircle, X, Trash2 } from 'lucide-react';
 import type { NotificationType } from '@/types/database';
+import { SwipeableNotification } from './SwipeableNotification';
 
 interface NotificationDrawerProps {
   open: boolean;
