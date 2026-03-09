@@ -63,6 +63,8 @@ export function Header({ onMenuClick, onNotificationClick, unreadCount }: Header
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Theme Toggle */}
+        <ThemeToggle />
         {/* Language Toggle */}
         <Button
           variant="ghost"
