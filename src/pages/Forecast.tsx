@@ -9,7 +9,7 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useForecasts } from '@/hooks/use-supabase-data';
 import { MOCK_FORECAST_DATA, CHART_COLORS, formatPercent } from '@/lib/mockData';
-import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { AlertTriangle, TrendingUp, TrendingDown, RefreshCw, ChevronDown } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea, Legend } from 'recharts';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
