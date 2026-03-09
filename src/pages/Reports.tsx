@@ -155,7 +155,7 @@ export default function Reports() {
                       onClick={() => generate(report.id, report.title, 'excel')}
                       disabled={generating === report.id}
                     >
-                      <Download className="w-4 h-4 mr-1" />Excel/CSV
+                      <Download className="w-4 h-4 mr-1" />Excel
                     </Button>
                   </div>
                 </div>
