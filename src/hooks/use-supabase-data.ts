@@ -322,17 +322,16 @@ export function useAuditLogs(entityId?: string) {
   return useQuery({
     queryKey: ['audit_logs', entityId],
     queryFn: async (): Promise<AuditLog[]> => {
-      // Since audit_logs isn't in the generated types yet, we use a raw SQL approach
-      const { data, error } = await supabase.rpc('get_audit_logs' as never, { 
-        p_entity_id: entityId || null 
+      // Since audit_logs isn't in the generated types yet, we use fetch
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/audit_logs?select=*&order=created_at.desc&limit=100${entityId ? `&entity_id=eq.${entityId}` : ''}`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
       });
-      
-      if (error) {
-        // If RPC doesn't exist, return empty array
-        console.warn('Audit logs not available:', error.message);
-        return [];
-      }
-      return (data || []) as AuditLog[];
+      if (!res.ok) return [];
+      return (await res.json()) as AuditLog[];
     },
     enabled: !isDemoMode,
   });
