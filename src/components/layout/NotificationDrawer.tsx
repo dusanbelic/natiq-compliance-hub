@@ -192,7 +192,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                           onClick={() => handleNotificationClick(notification)}
                         >
                           <button
-                            onClick={(e) => handleDelete(e, notification.id)}
+                            onClick={(e) => handleDeleteClick(e, notification.id)}
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
                             aria-label="Delete notification"
                           >
