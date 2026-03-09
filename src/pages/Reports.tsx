@@ -100,15 +100,15 @@ export default function Reports() {
     setGenerating(id);
     try {
       if (id === 1) {
-        format === 'pdf' ? exportCompliancePDF(dashboardData) : exportWorkforceAuditCSV(employees, dashboardData);
+        format === 'pdf' ? exportCompliancePDF(dashboardData) : exportWorkforceAuditXLSX(employees, dashboardData);
       } else if (id === 2) {
-        format === 'excel' ? exportWorkforceAuditCSV(employees, dashboardData) : exportCompliancePDF(dashboardData);
+        format === 'excel' ? exportWorkforceAuditXLSX(employees, dashboardData) : exportCompliancePDF(dashboardData);
       } else if (id === 3 && forecastData) {
         format === 'pdf'
           ? exportForecastPDF(dashboardData, forecastData)
-          : exportEmployeesCSV(employees, selectedEntity.name);
+          : exportEmployeesXLSX(employees, selectedEntity.name);
       } else if (id === 4) {
-        exportRegulatoryCSV(regulatoryChanges);
+        format === 'excel' ? exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryCSV(regulatoryChanges);
       }
       toast.success(`${title} (${format.toUpperCase()}) downloaded`);
     } catch {
