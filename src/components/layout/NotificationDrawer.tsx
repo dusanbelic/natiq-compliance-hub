@@ -84,12 +84,17 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
     }
   };
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (isDemoMode) {
-      setDismissedIds(prev => new Set(prev).add(id));
-    } else {
-      deleteNotification.mutate(id);
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (pendingDeleteId) {
+      handleDeleteById(pendingDeleteId);
+      setPendingDeleteId(null);
     }
   };
 
@@ -187,7 +192,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                           onClick={() => handleNotificationClick(notification)}
                         >
                           <button
-                            onClick={(e) => handleDelete(e, notification.id)}
+                            onClick={(e) => handleDeleteClick(e, notification.id)}
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
                             aria-label="Delete notification"
                           >
@@ -233,7 +238,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                           onClick={() => handleNotificationClick(notification)}
                         >
                           <button
-                            onClick={(e) => handleDelete(e, notification.id)}
+                            onClick={(e) => handleDeleteClick(e, notification.id)}
                             className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-background"
                             aria-label="Delete notification"
                           >
@@ -267,6 +272,23 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
           </div>
         </ScrollArea>
       </SheetContent>
+
+      <AlertDialog open={!!pendingDeleteId} onOpenChange={(open) => !open && setPendingDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('Delete notification?')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('This notification will be permanently removed.')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('Cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('Delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
