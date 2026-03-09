@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEntity } from '@/contexts/EntityContext';
 import { ComplianceRing } from '@/components/ComplianceRing';
@@ -5,16 +6,44 @@ import { ComplianceBandBar } from '@/components/ComplianceBandBar';
 import { COUNTRY_FLAGS } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { CardSkeleton, TableSkeleton } from '@/components/ui/LoadingSkeleton';
+import { toast } from 'sonner';
 
 export default function Compliance() {
-  const { selectedEntity, dashboardData } = useEntity();
+  const { selectedEntity, dashboardData, loading, refreshEntityData } = useEntity();
   const { score, department_breakdown } = dashboardData;
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    try {
+      refreshEntityData();
+      toast.success('Compliance scores recalculated');
+    } finally {
+      setTimeout(() => setRecalculating(false), 800);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-sora font-bold text-2xl">Compliance Score</h1>
+        </div>
+        <CardSkeleton className="h-80" />
+        <CardSkeleton className="h-48" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="font-sora font-bold text-2xl">Compliance Score</h1>
-        <Button variant="outline"><RefreshCw className="w-4 h-4 mr-2" />Recalculate</Button>
+        <Button variant="outline" onClick={handleRecalculate} disabled={recalculating}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${recalculating ? 'animate-spin' : ''}`} />
+          {recalculating ? 'Recalculating…' : 'Recalculate'}
+        </Button>
       </div>
 
       <Card className="shadow-card">
@@ -46,19 +75,23 @@ export default function Compliance() {
       <Card className="shadow-card">
         <CardHeader><CardTitle>Compliance by Department</CardTitle></CardHeader>
         <CardContent>
-          <table className="w-full text-sm">
-            <thead><tr className="border-b"><th className="text-left py-2">Department</th><th className="text-right">Total</th><th className="text-right">Nationals</th><th className="text-right">Ratio</th></tr></thead>
-            <tbody>
-              {department_breakdown.map((d) => (
-                <tr key={d.dept} className="border-b">
-                  <td className="py-2">{d.dept}</td>
-                  <td className="text-right font-jetbrains">{d.total}</td>
-                  <td className="text-right font-jetbrains">{d.nationals}</td>
-                  <td className={`text-right font-jetbrains ${d.ratio < score.target ? 'text-status-red' : ''}`}>{d.ratio.toFixed(1)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {department_breakdown.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">No department data available. Add employees to see breakdowns.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead><tr className="border-b"><th className="text-left py-2">Department</th><th className="text-right">Total</th><th className="text-right">Nationals</th><th className="text-right">Ratio</th></tr></thead>
+              <tbody>
+                {department_breakdown.map((d) => (
+                  <tr key={d.dept} className="border-b">
+                    <td className="py-2">{d.dept}</td>
+                    <td className="text-right font-jetbrains">{d.total}</td>
+                    <td className="text-right font-jetbrains">{d.nationals}</td>
+                    <td className={`text-right font-jetbrains ${d.ratio < score.target ? 'text-status-red' : ''}`}>{d.ratio.toFixed(1)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </CardContent>
       </Card>
     </div>
