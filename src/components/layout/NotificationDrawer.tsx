@@ -117,8 +117,12 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
     }
   };
 
-  const unreadNotifications = notifications.filter((n) => !n.read);
-  const readNotifications = notifications.filter((n) => n.read);
+  const effectiveNotifications = notifications.map(n => ({
+    ...n,
+    read: n.read || demoReadIds.has(n.id),
+  }));
+  const unreadNotifications = effectiveNotifications.filter((n) => !n.read);
+  const readNotifications = effectiveNotifications.filter((n) => n.read);
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
