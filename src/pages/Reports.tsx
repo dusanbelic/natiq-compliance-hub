@@ -299,7 +299,35 @@ export default function Reports() {
                 </div>
               </div>
 
-              <Button onClick={() => toast.success('Schedule saved')}>Save Schedule</Button>
+              {schedule?.last_sent_at && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" /> Last sent: {new Date(schedule.last_sent_at).toLocaleDateString()}
+                </p>
+              )}
+              <Button
+                disabled={saving || isDemoMode}
+                onClick={async () => {
+                  setSaving(true);
+                  try {
+                    await upsertSchedule.mutateAsync({
+                      entity_id: selectedEntity.id,
+                      enabled: scheduledEnabled,
+                      frequency: scheduleFreq,
+                      recipients: emails,
+                    });
+                    setLocalEnabled(null);
+                    setLocalFreq(null);
+                    setLocalEmails(null);
+                    toast.success('Schedule saved');
+                  } catch {
+                    toast.error('Failed to save schedule');
+                  }
+                  setSaving(false);
+                }}
+              >
+                {saving ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : null}
+                Save Schedule
+              </Button>
             </div>
           )}
         </CardContent>
