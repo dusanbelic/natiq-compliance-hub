@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useEntity } from '@/contexts/EntityContext';
