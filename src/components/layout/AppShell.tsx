@@ -17,13 +17,23 @@ import { Button } from '@/components/ui/button';
 export function AppShell() {
   const navigate = useNavigate();
   const { atRiskEntities } = useEntity();
+  const { isDemoMode } = useAuth();
   const { isRTL, t } = useLanguage();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notificationDrawerOpen, setNotificationDrawerOpen] = useState(false);
 
+  // Real-time notifications subscription
+  useRealtimeNotifications();
+
+  // Use live notifications when authenticated, mock when in demo
+  const { data: liveNotifications } = useNotifications();
+
   const unreadCount = useMemo(() => {
-    return MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
-  }, []);
+    if (isDemoMode) {
+      return MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
+    }
+    return (liveNotifications || []).filter((n) => !n.read).length;
+  }, [isDemoMode, liveNotifications]);
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
 

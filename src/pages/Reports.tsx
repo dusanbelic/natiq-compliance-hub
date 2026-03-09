@@ -8,6 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileText, Download, Table, BarChart3, Shield, Plus, X, Mail, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { useEntity } from '@/contexts/EntityContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { MOCK_EMPLOYEES, MOCK_FORECAST_DATA, MOCK_REGULATORY_CHANGES } from '@/lib/mockData';
+import { exportCompliancePDF, exportWorkforceAuditCSV, exportForecastPDF, exportRegulatoryCSV, exportEmployeesCSV } from '@/lib/export-utils';
+import { useAuditLogs, type AuditLog } from '@/hooks/use-supabase-data';
+import { getRelativeTime } from '@/lib/mockData';
 
 const REPORTS = [
   { id: 1, icon: Shield, title: 'Compliance Certificate', desc: 'Printable compliance status report for regulators or auditors', lastGenerated: '2025-01-08' },
@@ -17,21 +23,65 @@ const REPORTS = [
 ];
 
 export default function Reports() {
+  const { selectedEntity, dashboardData } = useEntity();
+  const { isDemoMode } = useAuth();
   const [generating, setGenerating] = useState<number | null>(null);
   const [scheduledEnabled, setScheduledEnabled] = useState(false);
   const [scheduleFreq, setScheduleFreq] = useState('weekly');
   const [emails, setEmails] = useState(['khalid@acmegulf.com']);
   const [newEmail, setNewEmail] = useState('');
+  const { data: auditLogs } = useAuditLogs(selectedEntity.id);
+
+  const employees = MOCK_EMPLOYEES[selectedEntity.id] || [];
+  const forecastData = MOCK_FORECAST_DATA[selectedEntity.id];
 
   const generate = (id: number, title: string, format: 'pdf' | 'excel') => {
     setGenerating(id);
-    toast.info(`Generating ${title} (${format.toUpperCase()})...`);
-    setTimeout(() => {
-      setGenerating(null);
-      toast.success(`${title} ready for download`, {
-        action: { label: 'Download', onClick: () => toast.info('Download started') },
-      });
-    }, 2000);
+
+    try {
+      if (id === 1) {
+        // Compliance Certificate
+        if (format === 'pdf') {
+          exportCompliancePDF(dashboardData);
+        } else {
+          exportWorkforceAuditCSV(employees, dashboardData);
+        }
+      } else if (id === 2) {
+        // Workforce Audit Pack
+        if (format === 'excel') {
+          exportWorkforceAuditCSV(employees, dashboardData);
+        } else {
+          exportCompliancePDF(dashboardData);
+        }
+      } else if (id === 3) {
+        // Forecast Report
+        if (forecastData) {
+          if (format === 'pdf') {
+            exportForecastPDF(dashboardData, {
+              projected_30d: forecastData.projected_30d,
+              projected_60d: forecastData.projected_60d,
+              projected_90d: forecastData.projected_90d,
+              risk_date: forecastData.risk_date,
+              confidence: forecastData.confidence,
+            });
+          } else {
+            exportEmployeesCSV(employees, selectedEntity.name);
+          }
+        }
+      } else if (id === 4) {
+        // Regulatory Impact Summary
+        if (format === 'excel') {
+          exportRegulatoryCSV(MOCK_REGULATORY_CHANGES);
+        } else {
+          exportRegulatoryCSV(MOCK_REGULATORY_CHANGES);
+        }
+      }
+      toast.success(`${title} (${format.toUpperCase()}) downloaded`);
+    } catch (err) {
+      toast.error('Failed to generate report');
+    }
+    
+    setGenerating(null);
   };
 
   const addEmail = () => {
@@ -76,7 +126,7 @@ export default function Reports() {
                       onClick={() => generate(report.id, report.title, 'excel')}
                       disabled={generating === report.id}
                     >
-                      <Download className="w-4 h-4 mr-1" />Excel
+                      <Download className="w-4 h-4 mr-1" />Excel/CSV
                     </Button>
                   </div>
                 </div>
@@ -85,6 +135,35 @@ export default function Reports() {
           </Card>
         ))}
       </div>
+
+      {/* Audit Log */}
+      {!isDemoMode && auditLogs && auditLogs.length > 0 && (
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />Audit Log
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {auditLogs.map((log: AuditLog) => (
+                <div key={log.id} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 text-sm">
+                  <Badge variant={log.action === 'INSERT' ? 'default' : log.action === 'DELETE' ? 'destructive' : 'secondary'} className="text-xs w-16 justify-center">
+                    {log.action}
+                  </Badge>
+                  <span className="text-muted-foreground">{log.table_name}</span>
+                  <span className="flex-1 truncate">
+                    {log.new_data && (log.new_data as any).full_name 
+                      ? (log.new_data as any).full_name 
+                      : log.record_id?.substring(0, 8)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{getRelativeTime(log.created_at)}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Scheduled Reports */}
       <Card className="shadow-card">
