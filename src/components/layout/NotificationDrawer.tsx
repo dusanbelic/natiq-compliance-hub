@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { MOCK_NOTIFICATIONS, getRelativeTime } from '@/lib/mockData';
-import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/use-supabase-data';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, useDeleteNotification, useClearAllNotifications } from '@/hooks/use-supabase-data';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, Radio, TrendingUp, CheckCircle } from 'lucide-react';
+import { AlertTriangle, Radio, TrendingUp, CheckCircle, X, Trash2 } from 'lucide-react';
 import type { NotificationType } from '@/types/database';
 
 interface NotificationDrawerProps {
@@ -44,10 +44,11 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
   const { isDemoMode } = useAuth();
   const { t, isRTL } = useLanguage();
   
-  // Use real data if authenticated, mock data if demo mode
   const { data: liveNotifications } = useNotifications();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
+  const deleteNotification = useDeleteNotification();
+  const clearAll = useClearAllNotifications();
 
   const notifications: NotificationItem[] = isDemoMode 
     ? MOCK_NOTIFICATIONS 
@@ -71,9 +72,22 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
     }
   };
 
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!isDemoMode) {
+      deleteNotification.mutate(id);
+    }
+  };
+
   const handleMarkAllRead = () => {
     if (!isDemoMode) {
       markAllRead.mutate();
+    }
+  };
+
+  const handleClearAll = () => {
+    if (!isDemoMode) {
+      clearAll.mutate();
     }
   };
 
@@ -82,14 +96,25 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side={isRTL ? 'left' : 'right'} className="w-full sm:max-w-md p-0">
+      <SheetContent side={isRTL ? 'left' : 'right'} className="w-full sm:max-w-md p-0" aria-describedby="notification-drawer-desc">
         <SheetHeader className="p-4 border-b border-border">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-sora">{t('Notifications')}</SheetTitle>
-            <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={handleMarkAllRead}>
-              {t('Mark all read')}
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="text-xs text-primary" onClick={handleMarkAllRead}>
+                {t('Mark all read')}
+              </Button>
+              {notifications.length > 0 && (
+                <Button variant="ghost" size="sm" className="text-xs text-destructive" onClick={handleClearAll}>
+                  <Trash2 className="w-3 h-3 mr-1" />
+                  {t('Clear all')}
+                </Button>
+              )}
+            </div>
           </div>
+          <SheetDescription id="notification-drawer-desc" className="sr-only">
+            {t('View and manage your notifications')}
+          </SheetDescription>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(100vh-80px)]">
@@ -105,11 +130,18 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                     const Icon = TYPE_ICONS[notification.type] || CheckCircle;
                     const colorClass = TYPE_COLORS[notification.type] || 'text-muted bg-muted';
                     return (
-                      <button
+                      <div
                         key={notification.id}
+                        className="relative group w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow cursor-pointer"
                         onClick={() => handleNotificationClick(notification)}
-                        className="w-full text-left p-3 rounded-lg bg-card border border-border hover:shadow-sm transition-shadow"
                       >
+                        <button
+                          onClick={(e) => handleDelete(e, notification.id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted"
+                          aria-label="Delete notification"
+                        >
+                          <X className="w-3.5 h-3.5 text-muted-foreground" />
+                        </button>
                         <div className="flex gap-3">
                           <div className={cn('w-8 h-8 rounded-full flex items-center justify-center shrink-0', colorClass)}>
                             <Icon className="w-4 h-4" />
@@ -123,7 +155,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                             <p className="text-xs text-muted-foreground/60 mt-1">{getRelativeTime(notification.created_at)}</p>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -140,11 +172,18 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                   {readNotifications.map((notification) => {
                     const Icon = TYPE_ICONS[notification.type] || CheckCircle;
                     return (
-                      <button
+                      <div
                         key={notification.id}
+                        className="relative group w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                         onClick={() => handleNotificationClick(notification)}
-                        className="w-full text-left p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                       >
+                        <button
+                          onClick={(e) => handleDelete(e, notification.id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-background"
+                          aria-label="Delete notification"
+                        >
+                          <X className="w-3.5 h-3.5 text-muted-foreground" />
+                        </button>
                         <div className="flex gap-3">
                           <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
                             <Icon className="w-4 h-4 text-muted-foreground" />
@@ -154,7 +193,7 @@ export function NotificationDrawer({ open, onClose }: NotificationDrawerProps) {
                             <p className="text-xs text-muted-foreground/60 mt-1">{getRelativeTime(notification.created_at)}</p>
                           </div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
