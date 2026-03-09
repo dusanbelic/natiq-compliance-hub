@@ -209,7 +209,8 @@ export default function Employees() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </td>
+                          )}
+                        </td>
                     </tr>
                   ))}
                 </tbody>
