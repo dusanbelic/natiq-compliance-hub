@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePermissions } from '@/hooks/use-permissions';
 import { COUNTRY_FLAGS, MOCK_DASHBOARD_DATA } from '@/lib/mockData';
 import {
   Home,
