@@ -98,12 +98,16 @@ export default function Employees() {
           <Button variant="outline" size="sm" onClick={() => exportEmployeesCSV(employees, selectedEntity.name)}>
             <Download className="w-4 h-4 mr-2" />Export CSV
           </Button>
-          <Button variant="outline" onClick={() => setCsvOpen(true)}>
-            <Upload className="w-4 h-4 mr-2" />Import CSV
-          </Button>
-          <Button onClick={handleAddEmployee}>
-            <Plus className="w-4 h-4 mr-2" />Add Employee
-          </Button>
+          {canEditEmployees && (
+            <>
+              <Button variant="outline" onClick={() => setCsvOpen(true)}>
+                <Upload className="w-4 h-4 mr-2" />Import CSV
+              </Button>
+              <Button onClick={handleAddEmployee}>
+                <Plus className="w-4 h-4 mr-2" />Add Employee
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
