@@ -125,8 +125,8 @@ export default function Reports() {
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-sora font-bold text-2xl">Reports</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="font-sora font-bold text-xl sm:text-2xl">Reports</h1>
 
       {/* Report Types */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
