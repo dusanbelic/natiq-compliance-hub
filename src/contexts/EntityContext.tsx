@@ -14,6 +14,8 @@ interface EntityContextType {
   atRiskEntities: Entity[];
   loading: boolean;
   allScores: Record<string, ScoreDetails>;
+  employeesByEntity: Record<string, Tables<'employees'>[]>;
+  refreshEntityData: () => void;
 }
 
 const EntityContext = createContext<EntityContextType | undefined>(undefined);
