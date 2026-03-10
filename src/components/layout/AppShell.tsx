@@ -11,7 +11,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NotificationDrawer } from './NotificationDrawer';
 import { MobileNav } from './MobileNav';
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function AppShell() {
@@ -43,6 +43,25 @@ export function AppShell() {
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
 
+  // Permanently dismissable alert banners — stored per entity+status
+  const DISMISSED_KEY = 'dismissed_compliance_alerts';
+  const getDismissedAlerts = (): Record<string, string> => {
+    try {
+      return JSON.parse(localStorage.getItem(DISMISSED_KEY) || '{}');
+    } catch { return {}; }
+  };
+  const [dismissedAlerts, setDismissedAlerts] = useState<Record<string, string>>(getDismissedAlerts);
+
+  const dismissAlert = (entityId: string, status: string) => {
+    const updated = { ...dismissedAlerts, [entityId]: status };
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(updated));
+    setDismissedAlerts(updated);
+  };
+
+  const isAlertDismissed = (entityId: string, status: string) => {
+    return dismissedAlerts[entityId] === status;
+  };
+
   return (
     <div className={cn('flex flex-col h-screen overflow-hidden', isRTL && 'flex-row-reverse')}>
       {/* Alert Banner for At-Risk Entities */}
@@ -51,6 +70,9 @@ export function AppShell() {
         if (!data) return null;
 
         const isNonCompliant = data.score.status === 'NON_COMPLIANT';
+        const statusKey = data.score.status;
+        if (isAlertDismissed(entity.id, statusKey)) return null;
+
         return (
           <div
             key={entity.id}
@@ -68,17 +90,26 @@ export function AppShell() {
                 {' '}is below minimum compliance ({data.score.ratio.toFixed(1)}% / {data.score.target.toFixed(1)}% required).
               </span>
             </div>
-            <Button
-              variant="link"
-              size="sm"
-              className={cn(
-                'h-auto p-0 font-semibold',
-                isNonCompliant ? 'text-status-red' : 'text-amber'
-              )}
-              onClick={() => navigate('/recommendations')}
-            >
-              {t('View Recommendations')} <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="link"
+                size="sm"
+                className={cn(
+                  'h-auto p-0 font-semibold',
+                  isNonCompliant ? 'text-status-red' : 'text-amber'
+                )}
+                onClick={() => navigate('/recommendations')}
+              >
+                {t('View Recommendations')} <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <button
+                onClick={() => dismissAlert(entity.id, statusKey)}
+                className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                aria-label="Dismiss alert"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         );
       })}
