@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,19 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Switch } from '@/components/ui/switch';
 import { getNationalityFlag, SALARY_BANDS } from '@/lib/mockData';
+import { NATIONALITIES } from '@/lib/nationalities';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import type { Employee, ContractType } from '@/types/database';
 import { toast } from 'sonner';
-
-const NATIONALITIES = [
-  { code: 'SA', name: 'Saudi Arabia' }, { code: 'AE', name: 'UAE' },
-  { code: 'QA', name: 'Qatar' }, { code: 'OM', name: 'Oman' },
-  { code: 'IN', name: 'India' }, { code: 'EG', name: 'Egypt' },
-  { code: 'PK', name: 'Pakistan' }, { code: 'PH', name: 'Philippines' },
-  { code: 'GB', name: 'United Kingdom' }, { code: 'US', name: 'United States' },
-  { code: 'JO', name: 'Jordan' }, { code: 'LB', name: 'Lebanon' },
-];
 
 const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
 
