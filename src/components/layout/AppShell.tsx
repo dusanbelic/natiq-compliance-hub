@@ -11,7 +11,7 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NotificationDrawer } from './NotificationDrawer';
 import { MobileNav } from './MobileNav';
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function AppShell() {
