@@ -80,14 +80,44 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave }: Employee
 
           <div>
             <Label>Nationality *</Label>
-            <Select value={watch('nationality')} onValueChange={(v) => setValue('nationality', v)}>
-              <SelectTrigger><SelectValue placeholder="Select nationality" /></SelectTrigger>
-              <SelectContent>
-                {NATIONALITIES.map(n => (
-                  <SelectItem key={n.code} value={n.code}>{getNationalityFlag(n.code)} {n.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={nationalityOpen} onOpenChange={setNationalityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={nationalityOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {watch('nationality')
+                    ? `${getNationalityFlag(watch('nationality'))} ${NATIONALITIES.find(n => n.code === watch('nationality'))?.name || watch('nationality')}`
+                    : 'Select nationality...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search nationality..." />
+                  <CommandList>
+                    <CommandEmpty>No nationality found.</CommandEmpty>
+                    <CommandGroup>
+                      {NATIONALITIES.map(n => (
+                        <CommandItem
+                          key={n.code}
+                          value={`${n.name} ${n.code}`}
+                          onSelect={() => {
+                            setValue('nationality', n.code, { shouldValidate: true });
+                            setNationalityOpen(false);
+                          }}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', watch('nationality') === n.code ? 'opacity-100' : 'opacity-0')} />
+                          {getNationalityFlag(n.code)} {n.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {errors.nationality && <p className="text-xs text-destructive mt-1">{errors.nationality.message}</p>}
           </div>
 
