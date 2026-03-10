@@ -94,10 +94,10 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave }: Employee
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                <Command>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0 z-[9999] pointer-events-auto" align="start" side="bottom" sideOffset={4} onOpenAutoFocus={(e) => e.preventDefault()}>
+                <Command shouldFilter={true}>
                   <CommandInput placeholder="Search nationality..." />
-                  <CommandList className="max-h-[200px] overflow-y-auto">
+                  <CommandList className="max-h-[200px] overflow-y-auto overscroll-contain"  onWheel={(e) => e.stopPropagation()}>
                     <CommandEmpty>No nationality found.</CommandEmpty>
                     <CommandGroup>
                       {NATIONALITIES.map(n => (
