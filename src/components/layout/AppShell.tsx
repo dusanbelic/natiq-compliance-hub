@@ -70,6 +70,9 @@ export function AppShell() {
         if (!data) return null;
 
         const isNonCompliant = data.score.status === 'NON_COMPLIANT';
+        const statusKey = data.score.status;
+        if (isAlertDismissed(entity.id, statusKey)) return null;
+
         return (
           <div
             key={entity.id}
@@ -87,17 +90,26 @@ export function AppShell() {
                 {' '}is below minimum compliance ({data.score.ratio.toFixed(1)}% / {data.score.target.toFixed(1)}% required).
               </span>
             </div>
-            <Button
-              variant="link"
-              size="sm"
-              className={cn(
-                'h-auto p-0 font-semibold',
-                isNonCompliant ? 'text-status-red' : 'text-amber'
-              )}
-              onClick={() => navigate('/recommendations')}
-            >
-              {t('View Recommendations')} <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="link"
+                size="sm"
+                className={cn(
+                  'h-auto p-0 font-semibold',
+                  isNonCompliant ? 'text-status-red' : 'text-amber'
+                )}
+                onClick={() => navigate('/recommendations')}
+              >
+                {t('View Recommendations')} <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+              <button
+                onClick={() => dismissAlert(entity.id, statusKey)}
+                className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                aria-label="Dismiss alert"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         );
       })}
