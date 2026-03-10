@@ -97,7 +97,7 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave }: Employee
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                 <Command>
                   <CommandInput placeholder="Search nationality..." />
-                  <CommandList>
+                  <CommandList className="max-h-[200px] overflow-y-auto">
                     <CommandEmpty>No nationality found.</CommandEmpty>
                     <CommandGroup>
                       {NATIONALITIES.map(n => (
