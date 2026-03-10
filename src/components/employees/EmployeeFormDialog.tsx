@@ -42,6 +42,7 @@ interface EmployeeFormDialogProps {
 
 export function EmployeeFormDialog({ open, onClose, employee, onSave }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
+  const [nationalityOpen, setNationalityOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
