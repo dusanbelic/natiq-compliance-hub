@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,19 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Switch } from '@/components/ui/switch';
 import { getNationalityFlag, SALARY_BANDS } from '@/lib/mockData';
+import { NATIONALITIES } from '@/lib/nationalities';
+import { cn } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import type { Employee, ContractType } from '@/types/database';
 import { toast } from 'sonner';
-
-const NATIONALITIES = [
-  { code: 'SA', name: 'Saudi Arabia' }, { code: 'AE', name: 'UAE' },
-  { code: 'QA', name: 'Qatar' }, { code: 'OM', name: 'Oman' },
-  { code: 'IN', name: 'India' }, { code: 'EG', name: 'Egypt' },
-  { code: 'PK', name: 'Pakistan' }, { code: 'PH', name: 'Philippines' },
-  { code: 'GB', name: 'United Kingdom' }, { code: 'US', name: 'United States' },
-  { code: 'JO', name: 'Jordan' }, { code: 'LB', name: 'Lebanon' },
-];
 
 const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
 
@@ -45,6 +42,7 @@ interface EmployeeFormDialogProps {
 
 export function EmployeeFormDialog({ open, onClose, employee, onSave }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
+  const [nationalityOpen, setNationalityOpen] = useState(false);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -82,14 +80,44 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave }: Employee
 
           <div>
             <Label>Nationality *</Label>
-            <Select value={watch('nationality')} onValueChange={(v) => setValue('nationality', v)}>
-              <SelectTrigger><SelectValue placeholder="Select nationality" /></SelectTrigger>
-              <SelectContent>
-                {NATIONALITIES.map(n => (
-                  <SelectItem key={n.code} value={n.code}>{getNationalityFlag(n.code)} {n.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={nationalityOpen} onOpenChange={setNationalityOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={nationalityOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {watch('nationality')
+                    ? `${getNationalityFlag(watch('nationality'))} ${NATIONALITIES.find(n => n.code === watch('nationality'))?.name || watch('nationality')}`
+                    : 'Select nationality...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search nationality..." />
+                  <CommandList>
+                    <CommandEmpty>No nationality found.</CommandEmpty>
+                    <CommandGroup>
+                      {NATIONALITIES.map(n => (
+                        <CommandItem
+                          key={n.code}
+                          value={`${n.name} ${n.code}`}
+                          onSelect={() => {
+                            setValue('nationality', n.code, { shouldValidate: true });
+                            setNationalityOpen(false);
+                          }}
+                        >
+                          <Check className={cn('mr-2 h-4 w-4', watch('nationality') === n.code ? 'opacity-100' : 'opacity-0')} />
+                          {getNationalityFlag(n.code)} {n.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             {errors.nationality && <p className="text-xs text-destructive mt-1">{errors.nationality.message}</p>}
           </div>
 
