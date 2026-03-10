@@ -43,6 +43,25 @@ export function AppShell() {
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
 
+  // Permanently dismissable alert banners — stored per entity+status
+  const DISMISSED_KEY = 'dismissed_compliance_alerts';
+  const getDismissedAlerts = (): Record<string, string> => {
+    try {
+      return JSON.parse(localStorage.getItem(DISMISSED_KEY) || '{}');
+    } catch { return {}; }
+  };
+  const [dismissedAlerts, setDismissedAlerts] = useState<Record<string, string>>(getDismissedAlerts);
+
+  const dismissAlert = (entityId: string, status: string) => {
+    const updated = { ...dismissedAlerts, [entityId]: status };
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify(updated));
+    setDismissedAlerts(updated);
+  };
+
+  const isAlertDismissed = (entityId: string, status: string) => {
+    return dismissedAlerts[entityId] === status;
+  };
+
   return (
     <div className={cn('flex flex-col h-screen overflow-hidden', isRTL && 'flex-row-reverse')}>
       {/* Alert Banner for At-Risk Entities */}
