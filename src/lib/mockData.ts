@@ -501,13 +501,11 @@ export function getRelativeTime(dateStr: string): string {
 }
 
 export function getNationalityFlag(code: string): string {
-  const flags: Record<string, string> = {
-    SA: '🇸🇦', AE: '🇦🇪', QA: '🇶🇦', OM: '🇴🇲',
-    IN: '🇮🇳', EG: '🇪🇬', PK: '🇵🇰', PH: '🇵🇭',
-    GB: '🇬🇧', US: '🇺🇸', DE: '🇩🇪', FR: '🇫🇷',
-    ES: '🇪🇸', JO: '🇯🇴', LB: '🇱🇧', SY: '🇸🇾',
-  };
-  return flags[code] || '🏳️';
+  if (!code || code.length !== 2) return '🏳️';
+  const codePoints = [...code.toUpperCase()].map(
+    (c) => 0x1f1e6 - 65 + c.charCodeAt(0)
+  );
+  return String.fromCodePoint(...codePoints);
 }
 
 export const INDUSTRY_SECTORS = [
