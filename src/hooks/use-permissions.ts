@@ -23,8 +23,8 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
 };
 
 export function usePermissions(): Permissions {
-  const { profile } = useAuth();
-  const role: UserRole = profile?.role ?? 'viewer';
+  const { profile, isDemoMode } = useAuth();
+  const role: UserRole = isDemoMode ? 'hr_director' : (profile?.role ?? 'viewer');
   const level = ROLE_HIERARCHY[role] ?? 1;
 
   return {
