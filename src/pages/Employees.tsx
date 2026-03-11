@@ -7,15 +7,15 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
-import { Search, Plus, Upload, Check, X, Trash2, Users, Download } from 'lucide-react';
+import { Search, Plus, Upload, Users, Download } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
+import { InlineEditableRow } from '@/components/employees/InlineEditableRow';
 import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
-import { useDeleteEmployee } from '@/hooks/use-supabase-data';
+import { useDeleteEmployee, useUpdateEmployee } from '@/hooks/use-supabase-data';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
