@@ -171,7 +171,7 @@ export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit
         {employee.counts_toward_quota ? <Check className="w-4 h-4 text-status-green mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" />}
       </td>
       <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
-        <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1 justify-end">
           {canEdit && (
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={startEdit}>
               <Pencil className="w-4 h-4 text-muted-foreground hover:text-foreground" />
