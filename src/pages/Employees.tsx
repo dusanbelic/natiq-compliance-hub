@@ -49,6 +49,21 @@ export default function Employees() {
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
 
   const deleteEmployee = useDeleteEmployee();
+  const updateEmployee = useUpdateEmployee();
+
+  const handleInlineSave = async (id: string, updates: Partial<Employee>) => {
+    if (isDemoMode) {
+      toast.success('Employee updated');
+      return;
+    }
+    try {
+      await updateEmployee.mutateAsync({ id, ...updates } as any);
+      toast.success('Employee updated');
+      refreshEntityData();
+    } catch {
+      toast.error('Failed to update employee');
+    }
+  };
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
