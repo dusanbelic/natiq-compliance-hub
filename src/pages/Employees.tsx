@@ -170,48 +170,15 @@ export default function Employees() {
                 </thead>
                 <tbody>
                   {filtered.map((emp) => (
-                    <tr
+                    <InlineEditableRow
                       key={emp.id}
-                      className="border-b hover:bg-muted/30 cursor-pointer"
-                      onClick={() => setDrawerEmployee(emp)}
-                    >
-                      <td className="p-3 font-medium">{emp.full_name}</td>
-                      <td className="p-3">
-                        <span className="flex items-center gap-2">
-                          {getNationalityFlag(emp.nationality)} {emp.nationality}
-                          {emp.is_national && <span className="text-xs px-1.5 py-0.5 rounded bg-teal-light text-teal font-medium">NATIONAL</span>}
-                        </span>
-                      </td>
-                      <td className="p-3 text-muted-foreground">{emp.job_title}</td>
-                      <td className="p-3 text-muted-foreground">{emp.department}</td>
-                      <td className="p-3 text-muted-foreground capitalize">{emp.contract_type.replace('_', ' ')}</td>
-                      <td className="p-3 text-center">
-                        {emp.counts_toward_quota ? <Check className="w-4 h-4 text-status-green mx-auto" /> : <X className="w-4 h-4 text-muted-foreground mx-auto" />}
-                      </td>
-                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
-                          {canDeleteEmployees && (
-                          <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Employee</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will permanently delete <strong>{emp.full_name}</strong>. This cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(emp)} className="bg-destructive text-destructive-foreground">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                          )}
-                        </td>
-                    </tr>
+                      employee={emp}
+                      onSave={handleInlineSave}
+                      onDelete={handleDelete}
+                      onClick={setDrawerEmployee}
+                      canEdit={canEditEmployees}
+                      canDelete={canDeleteEmployees}
+                    />
                   ))}
                 </tbody>
               </table>
