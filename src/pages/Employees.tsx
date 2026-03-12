@@ -86,14 +86,30 @@ export default function Employees() {
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
-  const filtered = employees.filter((e) => {
-    const matchesSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      e.department?.toLowerCase().includes(search.toLowerCase()) ||
-      e.nationality.toLowerCase().includes(search.toLowerCase());
-    const matchesNat = natFilter === 'all' || (natFilter === 'nationals' ? e.is_national : !e.is_national);
-    const matchesDept = deptFilter === 'all' || e.department === deptFilter;
-    return matchesSearch && matchesNat && matchesDept;
-  });
+  const filtered = useMemo(() => {
+    const list = employees.filter((e) => {
+      const matchesSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        e.department?.toLowerCase().includes(search.toLowerCase()) ||
+        e.nationality.toLowerCase().includes(search.toLowerCase());
+      const matchesNat = natFilter === 'all' || (natFilter === 'nationals' ? e.is_national : !e.is_national);
+      const matchesDept = deptFilter === 'all' || e.department === deptFilter;
+      return matchesSearch && matchesNat && matchesDept;
+    });
+
+    if (sortKey) {
+      list.sort((a, b) => {
+        const aVal = a[sortKey] ?? '';
+        const bVal = b[sortKey] ?? '';
+        if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
+          return sortDir === 'asc' ? (aVal === bVal ? 0 : aVal ? -1 : 1) : (aVal === bVal ? 0 : aVal ? 1 : -1);
+        }
+        const cmp = String(aVal).localeCompare(String(bVal));
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
   const handleAddEmployee = () => {
     setEditEmployee(null);
