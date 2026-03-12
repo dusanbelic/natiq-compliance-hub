@@ -7,7 +7,7 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
-import { Search, Plus, Upload, Users, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, Plus, Upload, Users, Download, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
