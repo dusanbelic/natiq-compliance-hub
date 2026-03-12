@@ -209,12 +209,25 @@ export default function Employees() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left p-3 font-medium">Name</th>
-                    <th className="text-left p-3 font-medium">Nationality</th>
-                    <th className="text-left p-3 font-medium">Role</th>
-                    <th className="text-left p-3 font-medium">Department</th>
-                    <th className="text-left p-3 font-medium">Contract</th>
-                    <th className="text-center p-3 font-medium">Quota</th>
+                    {([
+                      ['full_name', 'Name', 'text-left'],
+                      ['nationality', 'Nationality', 'text-left'],
+                      ['job_title', 'Role', 'text-left'],
+                      ['department', 'Department', 'text-left'],
+                      ['contract_type', 'Contract', 'text-left'],
+                      ['counts_toward_quota', 'Quota', 'text-center'],
+                    ] as [SortKey, string, string][]).map(([key, label, align]) => (
+                      <th
+                        key={key}
+                        className={`${align} p-3 font-medium cursor-pointer select-none hover:bg-muted/80 transition-colors`}
+                        onClick={() => toggleSort(key)}
+                      >
+                        <span className="inline-flex items-center gap-1.5">
+                          {label}
+                          <SortIcon column={key} />
+                        </span>
+                      </th>
+                    ))}
                     <th className="text-right p-3 font-medium">Actions</th>
                   </tr>
                 </thead>
