@@ -32,8 +32,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  onNotificationClick: () => void;
-  unreadCount: number;
 }
 
 const NAV_ITEMS = [
