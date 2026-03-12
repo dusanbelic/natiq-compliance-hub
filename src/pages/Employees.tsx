@@ -111,6 +111,15 @@ export default function Employees() {
     return list;
   }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
+  const PAGE_SIZE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedRows = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+
+  // Reset page when filters change
+  const resetPage = () => setCurrentPage(1);
+
   const handleAddEmployee = () => {
     setEditEmployee(null);
     setFormOpen(true);
