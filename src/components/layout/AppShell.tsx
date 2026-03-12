@@ -121,8 +121,6 @@ export function AppShell() {
           <Sidebar
             collapsed={sidebarCollapsed}
             onToggle={toggleSidebar}
-            onNotificationClick={() => setNotificationDrawerOpen(true)}
-            unreadCount={unreadCount}
           />
         </div>
 

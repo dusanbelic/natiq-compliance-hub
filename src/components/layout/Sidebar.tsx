@@ -19,7 +19,6 @@ import {
   ChevronDown,
   LogOut,
   HelpCircle,
-  Bell,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -33,8 +32,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
-  onNotificationClick: () => void;
-  unreadCount: number;
 }
 
 const NAV_ITEMS = [
@@ -48,7 +45,7 @@ const NAV_ITEMS = [
   { icon: Settings, label: 'Settings', path: '/settings', minRole: 'hr_manager' as const },
 ];
 
-export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { entities, selectedEntityId, setSelectedEntityId, selectedEntity } = useEntity();
   const { profile, signOut, isDemoMode } = useAuth();
@@ -183,24 +180,6 @@ export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount 
 
       {/* Footer */}
       <div className="border-t border-sidebar-border p-3 space-y-2">
-        {/* Notifications */}
-        <button
-          onClick={onNotificationClick}
-          className={cn(
-            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors relative',
-            collapsed && 'justify-center px-2'
-          )}
-        >
-          <div className="relative">
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-medium">
-                {unreadCount}
-              </span>
-            )}
-          </div>
-          {!collapsed && <span className="text-sm">{t('Notifications')}</span>}
-        </button>
 
         {/* Help */}
         <button
