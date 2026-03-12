@@ -184,7 +184,7 @@ export default function Employees() {
             <SelectItem value="expats">Expats Only</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={deptFilter} onValueChange={setDeptFilter}>
+        <Select value={deptFilter} onValueChange={(v) => { setDeptFilter(v); resetPage(); }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Departments</SelectItem>
