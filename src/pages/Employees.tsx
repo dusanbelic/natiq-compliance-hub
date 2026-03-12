@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
 import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
-import { Search, Plus, Upload, Users, Download } from 'lucide-react';
+import { Search, Plus, Upload, Users, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
@@ -48,6 +48,25 @@ export default function Employees() {
   const [formOpen, setFormOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
 
+  type SortKey = 'full_name' | 'nationality' | 'job_title' | 'department' | 'contract_type' | 'counts_toward_quota';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sortKey !== column) return <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/50" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-primary" /> : <ArrowDown className="w-3.5 h-3.5 text-primary" />;
+  };
+
   const deleteEmployee = useDeleteEmployee();
   const updateEmployee = useUpdateEmployee();
 
@@ -67,14 +86,30 @@ export default function Employees() {
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
-  const filtered = employees.filter((e) => {
-    const matchesSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      e.department?.toLowerCase().includes(search.toLowerCase()) ||
-      e.nationality.toLowerCase().includes(search.toLowerCase());
-    const matchesNat = natFilter === 'all' || (natFilter === 'nationals' ? e.is_national : !e.is_national);
-    const matchesDept = deptFilter === 'all' || e.department === deptFilter;
-    return matchesSearch && matchesNat && matchesDept;
-  });
+  const filtered = useMemo(() => {
+    const list = employees.filter((e) => {
+      const matchesSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) ||
+        e.department?.toLowerCase().includes(search.toLowerCase()) ||
+        e.nationality.toLowerCase().includes(search.toLowerCase());
+      const matchesNat = natFilter === 'all' || (natFilter === 'nationals' ? e.is_national : !e.is_national);
+      const matchesDept = deptFilter === 'all' || e.department === deptFilter;
+      return matchesSearch && matchesNat && matchesDept;
+    });
+
+    if (sortKey) {
+      list.sort((a, b) => {
+        const aVal = a[sortKey] ?? '';
+        const bVal = b[sortKey] ?? '';
+        if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
+          return sortDir === 'asc' ? (aVal === bVal ? 0 : aVal ? -1 : 1) : (aVal === bVal ? 0 : aVal ? 1 : -1);
+        }
+        const cmp = String(aVal).localeCompare(String(bVal));
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
   const handleAddEmployee = () => {
     setEditEmployee(null);
@@ -174,12 +209,25 @@ export default function Employees() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left p-3 font-medium">Name</th>
-                    <th className="text-left p-3 font-medium">Nationality</th>
-                    <th className="text-left p-3 font-medium">Role</th>
-                    <th className="text-left p-3 font-medium">Department</th>
-                    <th className="text-left p-3 font-medium">Contract</th>
-                    <th className="text-center p-3 font-medium">Quota</th>
+                    {([
+                      ['full_name', 'Name', 'text-left'],
+                      ['nationality', 'Nationality', 'text-left'],
+                      ['job_title', 'Role', 'text-left'],
+                      ['department', 'Department', 'text-left'],
+                      ['contract_type', 'Contract', 'text-left'],
+                      ['counts_toward_quota', 'Quota', 'text-center'],
+                    ] as [SortKey, string, string][]).map(([key, label, align]) => (
+                      <th
+                        key={key}
+                        className={`${align} p-3 font-medium cursor-pointer select-none hover:bg-muted/80 transition-colors`}
+                        onClick={() => toggleSort(key)}
+                      >
+                        <span className="inline-flex items-center gap-1.5">
+                          {label}
+                          <SortIcon column={key} />
+                        </span>
+                      </th>
+                    ))}
                     <th className="text-right p-3 font-medium">Actions</th>
                   </tr>
                 </thead>
