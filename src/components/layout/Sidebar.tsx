@@ -45,7 +45,7 @@ const NAV_ITEMS = [
   { icon: Settings, label: 'Settings', path: '/settings', minRole: 'hr_manager' as const },
 ];
 
-export function Sidebar({ collapsed, onToggle, onNotificationClick, unreadCount }: SidebarProps) {
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { entities, selectedEntityId, setSelectedEntityId, selectedEntity } = useEntity();
   const { profile, signOut, isDemoMode } = useAuth();
