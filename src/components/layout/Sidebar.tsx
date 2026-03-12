@@ -19,7 +19,6 @@ import {
   ChevronDown,
   LogOut,
   HelpCircle,
-  Bell,
 } from 'lucide-react';
 import {
   DropdownMenu,
