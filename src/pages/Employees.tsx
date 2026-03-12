@@ -176,7 +176,7 @@ export default function Employees() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Search by name, department, nationality..." value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} className="pl-9" />
         </div>
-        <Select value={natFilter} onValueChange={(v) => setNatFilter(v as 'all' | 'nationals' | 'expats')}>
+        <Select value={natFilter} onValueChange={(v) => { setNatFilter(v as 'all' | 'nationals' | 'expats'); resetPage(); }}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Nationalities</SelectItem>
