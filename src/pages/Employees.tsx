@@ -241,7 +241,7 @@ export default function Employees() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((emp) => (
+                  {paginatedRows.map((emp) => (
                     <InlineEditableRow
                       key={emp.id}
                       employee={emp}
@@ -255,6 +255,38 @@ export default function Employees() {
                 </tbody>
               </table>
             </div>
+            {/* Pagination */}
+            {filtered.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  Showing {((safeCurrentPage - 1) * PAGE_SIZE) + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safeCurrentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
+                    .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
+                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((p, idx) =>
+                      p === 'ellipsis' ? (
+                        <span key={`e${idx}`} className="px-1 text-muted-foreground">…</span>
+                      ) : (
+                        <Button key={p} variant={p === safeCurrentPage ? 'default' : 'outline'} size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p)}>
+                          {p}
+                        </Button>
+                      )
+                    )}
+                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safeCurrentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
