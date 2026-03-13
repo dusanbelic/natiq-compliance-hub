@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { InlineEditableRow } from '@/components/employees/InlineEditableRow';
 import type { Employee } from '@/types/database';
 
@@ -16,6 +16,9 @@ interface EmployeeTableProps {
   onClick: (emp: Employee) => void;
   canEdit: boolean;
   canDelete: boolean;
+  selectedIds: Set<string>;
+  onSelectionChange: (ids: Set<string>) => void;
+  allFilteredIds: string[];
 }
 
 const COLUMNS: [SortKey, string, string][] = [
@@ -42,12 +45,43 @@ export function EmployeeTable({
   onClick,
   canEdit,
   canDelete,
+  selectedIds,
+  onSelectionChange,
+  allFilteredIds,
 }: EmployeeTableProps) {
+  const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.has(id));
+  const someSelected = allFilteredIds.some(id => selectedIds.has(id)) && !allSelected;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      onSelectionChange(new Set(allFilteredIds));
+    } else {
+      onSelectionChange(new Set());
+    }
+  };
+
+  const handleSelectRow = (id: string, checked: boolean) => {
+    const next = new Set(selectedIds);
+    if (checked) {
+      next.add(id);
+    } else {
+      next.delete(id);
+    }
+    onSelectionChange(next);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted/50">
           <tr>
+            <th className="p-3 w-10">
+              <Checkbox
+                checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                onCheckedChange={(checked) => handleSelectAll(checked === true)}
+                aria-label="Select all employees"
+              />
+            </th>
             {COLUMNS.map(([key, label, align]) => (
               <th
                 key={key}
@@ -73,6 +107,8 @@ export function EmployeeTable({
               onClick={onClick}
               canEdit={canEdit}
               canDelete={canDelete}
+              selected={selectedIds.has(emp.id)}
+              onSelectChange={(checked) => handleSelectRow(emp.id, checked)}
             />
           ))}
         </tbody>
