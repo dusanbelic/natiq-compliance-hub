@@ -5,7 +5,7 @@ import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
 import { MOCK_EMPLOYEES } from '@/lib/mockData';
-import { Plus, Upload, Users, Download } from 'lucide-react';
+import { Plus, Upload, Users, Download, Trash2, X } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
@@ -13,6 +13,7 @@ import { EmployeeFilters } from '@/components/employees/EmployeeFilters';
 import { EmployeeTable, type SortKey, type SortDir } from '@/components/employees/EmployeeTable';
 import { EmployeePagination } from '@/components/employees/EmployeePagination';
 import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
 import { useDeleteEmployee, useUpdateEmployee } from '@/hooks/use-supabase-data';
@@ -46,6 +47,7 @@ export default function Employees() {
   const [drawerEmployee, setDrawerEmployee] = useState<Employee | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -84,6 +86,27 @@ export default function Employees() {
     } catch { toast.error('Failed to delete employee'); }
   };
 
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (isDemoMode) {
+      toast.success(`${count} employee${count > 1 ? 's' : ''} removed`);
+      setSelectedIds(new Set());
+      return;
+    }
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => deleteEmployee.mutateAsync(id)));
+      toast.success(`${count} employee${count > 1 ? 's' : ''} removed`);
+      setSelectedIds(new Set());
+      refreshEntityData();
+    } catch { toast.error('Failed to delete some employees'); }
+  };
+
+  const handleBulkExport = () => {
+    const selected = employees.filter(e => selectedIds.has(e.id));
+    exportEmployeesCSV(selected, selectedEntity.name);
+    toast.success(`Exported ${selected.length} employee${selected.length > 1 ? 's' : ''}`);
+  };
+
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))] as string[];
 
   const filtered = useMemo(() => {
@@ -107,6 +130,8 @@ export default function Employees() {
     }
     return list;
   }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
+
+  const allFilteredIds = useMemo(() => filtered.map(e => e.id), [filtered]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(currentPage, totalPages);
@@ -150,6 +175,45 @@ export default function Employees() {
         departments={departments}
       />
 
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+          <span className="text-sm font-medium">
+            {selectedIds.size} selected
+          </span>
+          <div className="h-4 w-px bg-border" />
+          <Button variant="outline" size="sm" onClick={handleBulkExport}>
+            <Download className="w-3.5 h-3.5 mr-1.5" />Export Selected
+          </Button>
+          {canDeleteEmployees && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />Delete Selected
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedIds.size} Employees</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete {selectedIds.size} employee{selectedIds.size > 1 ? 's' : ''}. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground">
+                    Delete {selectedIds.size}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+          <Button variant="ghost" size="sm" className="ml-auto h-7 w-7 p-0" onClick={() => setSelectedIds(new Set())}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <Card className="shadow-card"><CardContent className="p-4"><TableSkeleton rows={8} /></CardContent></Card>
       ) : filtered.length === 0 ? (
@@ -177,6 +241,9 @@ export default function Employees() {
               onClick={setDrawerEmployee}
               canEdit={canEditEmployees}
               canDelete={canDeleteEmployees}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              allFilteredIds={allFilteredIds}
             />
             <EmployeePagination
               totalItems={filtered.length}
