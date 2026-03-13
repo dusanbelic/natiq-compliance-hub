@@ -111,11 +111,12 @@ export default function Employees() {
     return list;
   }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE_OPTIONS = [10, 15, 25, 50] as const;
+  const [pageSize, setPageSize] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedRows = filtered.slice((safeCurrentPage - 1) * PAGE_SIZE, safeCurrentPage * PAGE_SIZE);
+  const paginatedRows = filtered.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
   // Reset page when filters change
   const resetPage = () => setCurrentPage(1);
@@ -256,11 +257,22 @@ export default function Employees() {
               </table>
             </div>
             {/* Pagination */}
-            {filtered.length > PAGE_SIZE && (
+            {filtered.length > pageSize && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
-                <p className="text-sm text-muted-foreground">
-                  Showing {((safeCurrentPage - 1) * PAGE_SIZE) + 1}–{Math.min(safeCurrentPage * PAGE_SIZE, filtered.length)} of {filtered.length}
-                </p>
+                <div className="flex items-center gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {((safeCurrentPage - 1) * pageSize) + 1}–{Math.min(safeCurrentPage * pageSize, filtered.length)} of {filtered.length}
+                  </p>
+                  <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
+                    <SelectTrigger className="h-8 w-[70px]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {PAGE_SIZE_OPTIONS.map(size => (
+                        <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">per page</span>
+                </div>
                 <div className="flex items-center gap-1">
                   <Button variant="outline" size="icon" className="h-8 w-8" disabled={safeCurrentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
                     <ChevronLeft className="w-4 h-4" />
