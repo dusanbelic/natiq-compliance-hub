@@ -111,7 +111,8 @@ export default function Employees() {
     return list;
   }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
-  const PAGE_SIZE = 15;
+  const PAGE_SIZE_OPTIONS = [10, 15, 25, 50] as const;
+  const [pageSize, setPageSize] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
