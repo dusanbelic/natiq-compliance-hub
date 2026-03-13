@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Check, X, Pencil, Trash2 } from 'lucide-react';
 import { getNationalityFlag } from '@/lib/mockData';
 import { NATIONALITIES } from '@/lib/nationalities';
@@ -22,9 +23,11 @@ interface InlineEditableRowProps {
   onClick: (employee: Employee) => void;
   canEdit: boolean;
   canDelete: boolean;
+  selected?: boolean;
+  onSelectChange?: (checked: boolean) => void;
 }
 
-export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete }: InlineEditableRowProps) {
+export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange }: InlineEditableRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Employee>>({});
   const [natOpen, setNatOpen] = useState(false);
@@ -63,6 +66,9 @@ export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit
   if (editing) {
     return (
       <tr ref={rowRef} className="border-b bg-muted/20" onClick={(e) => e.stopPropagation()}>
+        <td className="p-2 w-10">
+          <Checkbox checked={selected} onCheckedChange={(c) => onSelectChange?.(c === true)} disabled />
+        </td>
         <td className="p-2">
           <Input
             value={draft.full_name || ''}
@@ -154,9 +160,19 @@ export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit
 
   return (
     <tr
-      className="border-b hover:bg-muted/30 cursor-pointer group"
+      className={cn(
+        "border-b hover:bg-muted/30 cursor-pointer group",
+        selected && "bg-primary/5"
+      )}
       onClick={() => onClick(employee)}
     >
+      <td className="p-3 w-10" onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={selected}
+          onCheckedChange={(c) => onSelectChange?.(c === true)}
+          aria-label={`Select ${employee.full_name}`}
+        />
+      </td>
       <td className="p-3 font-medium">{employee.full_name}</td>
       <td className="p-3">
         <span className="flex items-center gap-2">
