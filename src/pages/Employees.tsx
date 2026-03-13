@@ -1,17 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/use-permissions';
-import { MOCK_EMPLOYEES, getNationalityFlag } from '@/lib/mockData';
-import { Search, Plus, Upload, Users, Download, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MOCK_EMPLOYEES } from '@/lib/mockData';
+import { Plus, Upload, Users, Download } from 'lucide-react';
 import { CSVImportDialog } from '@/components/employees/CSVImportDialog';
 import { EmployeeDrawer } from '@/components/employees/EmployeeDrawer';
 import { EmployeeFormDialog } from '@/components/employees/EmployeeFormDialog';
-import { InlineEditableRow } from '@/components/employees/InlineEditableRow';
+import { EmployeeFilters } from '@/components/employees/EmployeeFilters';
+import { EmployeeTable, type SortKey, type SortDir } from '@/components/employees/EmployeeTable';
+import { EmployeePagination } from '@/components/employees/EmployeePagination';
 import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
@@ -23,7 +23,6 @@ export default function Employees() {
   const { isDemoMode } = useAuth();
   const { canEditEmployees, canDeleteEmployees } = usePermissions();
 
-  // Use live data or mock data based on mode
   const liveEmployees = employeesByEntity[selectedEntity.id] || [];
   const mockEmployees = MOCK_EMPLOYEES[selectedEntity.id] || [];
   const employees: Employee[] = isDemoMode
@@ -48,10 +47,10 @@ export default function Employees() {
   const [formOpen, setFormOpen] = useState(false);
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null);
 
-  type SortKey = 'full_name' | 'nationality' | 'job_title' | 'department' | 'contract_type' | 'counts_toward_quota';
-  type SortDir = 'asc' | 'desc';
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [pageSize, setPageSize] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -62,29 +61,30 @@ export default function Employees() {
     }
   };
 
-  const SortIcon = ({ column }: { column: SortKey }) => {
-    if (sortKey !== column) return <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground/50" />;
-    return sortDir === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-primary" /> : <ArrowDown className="w-3.5 h-3.5 text-primary" />;
-  };
+  const resetPage = () => setCurrentPage(1);
 
   const deleteEmployee = useDeleteEmployee();
   const updateEmployee = useUpdateEmployee();
 
   const handleInlineSave = async (id: string, updates: Partial<Employee>) => {
-    if (isDemoMode) {
-      toast.success('Employee updated');
-      return;
-    }
+    if (isDemoMode) { toast.success('Employee updated'); return; }
     try {
       await updateEmployee.mutateAsync({ id, ...updates } as any);
       toast.success('Employee updated');
       refreshEntityData();
-    } catch {
-      toast.error('Failed to update employee');
-    }
+    } catch { toast.error('Failed to update employee'); }
   };
 
-  const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
+  const handleDelete = async (emp: Employee) => {
+    if (isDemoMode) { toast.success(`${emp.full_name} has been removed`); return; }
+    try {
+      await deleteEmployee.mutateAsync(emp.id);
+      toast.success(`${emp.full_name} has been removed`);
+      refreshEntityData();
+    } catch { toast.error('Failed to delete employee'); }
+  };
+
+  const departments = [...new Set(employees.map(e => e.department).filter(Boolean))] as string[];
 
   const filtered = useMemo(() => {
     const list = employees.filter((e) => {
@@ -95,7 +95,6 @@ export default function Employees() {
       const matchesDept = deptFilter === 'all' || e.department === deptFilter;
       return matchesSearch && matchesNat && matchesDept;
     });
-
     if (sortKey) {
       list.sort((a, b) => {
         const aVal = a[sortKey] ?? '';
@@ -103,48 +102,18 @@ export default function Employees() {
         if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
           return sortDir === 'asc' ? (aVal === bVal ? 0 : aVal ? -1 : 1) : (aVal === bVal ? 0 : aVal ? 1 : -1);
         }
-        const cmp = String(aVal).localeCompare(String(bVal));
-        return sortDir === 'asc' ? cmp : -cmp;
+        return sortDir === 'asc' ? String(aVal).localeCompare(String(bVal)) : -String(aVal).localeCompare(String(bVal));
       });
     }
-
     return list;
   }, [employees, search, natFilter, deptFilter, sortKey, sortDir]);
 
-  const PAGE_SIZE_OPTIONS = [10, 15, 25, 50] as const;
-  const [pageSize, setPageSize] = useState(15);
-  const [currentPage, setCurrentPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const paginatedRows = filtered.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedRows = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
-  // Reset page when filters change
-  const resetPage = () => setCurrentPage(1);
-
-  const handleAddEmployee = () => {
-    setEditEmployee(null);
-    setFormOpen(true);
-  };
-
-  const handleEditFromDrawer = (emp: Employee) => {
-    setDrawerEmployee(null);
-    setEditEmployee(emp);
-    setFormOpen(true);
-  };
-
-  const handleDelete = async (emp: Employee) => {
-    if (isDemoMode) {
-      toast.success(`${emp.full_name} has been removed`);
-      return;
-    }
-    try {
-      await deleteEmployee.mutateAsync(emp.id);
-      toast.success(`${emp.full_name} has been removed`);
-      refreshEntityData();
-    } catch {
-      toast.error('Failed to delete employee');
-    }
-  };
+  const handleAddEmployee = () => { setEditEmployee(null); setFormOpen(true); };
+  const handleEditFromDrawer = (emp: Employee) => { setDrawerEmployee(null); setEditEmployee(emp); setFormOpen(true); };
 
   const isLoading = !isDemoMode && entityLoading;
 
@@ -171,35 +140,18 @@ export default function Employees() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Search by name, department, nationality..." value={search} onChange={(e) => { setSearch(e.target.value); resetPage(); }} className="pl-9" />
-        </div>
-        <Select value={natFilter} onValueChange={(v) => { setNatFilter(v as 'all' | 'nationals' | 'expats'); resetPage(); }}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Nationalities</SelectItem>
-            <SelectItem value="nationals">Nationals Only</SelectItem>
-            <SelectItem value="expats">Expats Only</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={deptFilter} onValueChange={(v) => { setDeptFilter(v); resetPage(); }}>
-          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            {departments.map(d => <SelectItem key={d} value={d!}>{d}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
+      <EmployeeFilters
+        search={search}
+        onSearchChange={(v) => { setSearch(v); resetPage(); }}
+        natFilter={natFilter}
+        onNatFilterChange={(v) => { setNatFilter(v); resetPage(); }}
+        deptFilter={deptFilter}
+        onDeptFilterChange={(v) => { setDeptFilter(v); resetPage(); }}
+        departments={departments}
+      />
 
       {isLoading ? (
-        <Card className="shadow-card">
-          <CardContent className="p-4">
-            <TableSkeleton rows={8} />
-          </CardContent>
-        </Card>
+        <Card className="shadow-card"><CardContent className="p-4"><TableSkeleton rows={8} /></CardContent></Card>
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Users}
@@ -215,95 +167,28 @@ export default function Employees() {
       ) : (
         <Card className="shadow-card">
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50">
-                  <tr>
-                    {([
-                      ['full_name', 'Name', 'text-left'],
-                      ['nationality', 'Nationality', 'text-left'],
-                      ['job_title', 'Role', 'text-left'],
-                      ['department', 'Department', 'text-left'],
-                      ['contract_type', 'Contract', 'text-left'],
-                      ['counts_toward_quota', 'Quota', 'text-center'],
-                    ] as [SortKey, string, string][]).map(([key, label, align]) => (
-                      <th
-                        key={key}
-                        className={`${align} p-3 font-medium cursor-pointer select-none hover:bg-muted/80 transition-colors`}
-                        onClick={() => toggleSort(key)}
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          {label}
-                          <SortIcon column={key} />
-                        </span>
-                      </th>
-                    ))}
-                    <th className="text-right p-3 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedRows.map((emp) => (
-                    <InlineEditableRow
-                      key={emp.id}
-                      employee={emp}
-                      onSave={handleInlineSave}
-                      onDelete={handleDelete}
-                      onClick={setDrawerEmployee}
-                      canEdit={canEditEmployees}
-                      canDelete={canDeleteEmployees}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Pagination */}
-            {filtered.length > pageSize && (
-              <div className="flex items-center justify-between border-t border-border px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    Showing {((safeCurrentPage - 1) * pageSize) + 1}–{Math.min(safeCurrentPage * pageSize, filtered.length)} of {filtered.length}
-                  </p>
-                  <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setCurrentPage(1); }}>
-                    <SelectTrigger className="h-8 w-[70px]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {PAGE_SIZE_OPTIONS.map(size => (
-                        <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground">per page</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safeCurrentPage <= 1} onClick={() => setCurrentPage(p => p - 1)}>
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(p => p === 1 || p === totalPages || Math.abs(p - safeCurrentPage) <= 1)
-                    .reduce<(number | 'ellipsis')[]>((acc, p, idx, arr) => {
-                      if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push('ellipsis');
-                      acc.push(p);
-                      return acc;
-                    }, [])
-                    .map((p, idx) =>
-                      p === 'ellipsis' ? (
-                        <span key={`e${idx}`} className="px-1 text-muted-foreground">…</span>
-                      ) : (
-                        <Button key={p} variant={p === safeCurrentPage ? 'default' : 'outline'} size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p)}>
-                          {p}
-                        </Button>
-                      )
-                    )}
-                  <Button variant="outline" size="icon" className="h-8 w-8" disabled={safeCurrentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)}>
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
+            <EmployeeTable
+              rows={paginatedRows}
+              sortKey={sortKey}
+              sortDir={sortDir}
+              onToggleSort={toggleSort}
+              onInlineSave={handleInlineSave}
+              onDelete={handleDelete}
+              onClick={setDrawerEmployee}
+              canEdit={canEditEmployees}
+              canDelete={canDeleteEmployees}
+            />
+            <EmployeePagination
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              currentPage={safePage}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(s) => { setPageSize(s); setCurrentPage(1); }}
+            />
           </CardContent>
         </Card>
       )}
 
-      {/* Dialogs */}
       <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => { toast.success(`${data.length} employees imported`); refreshEntityData(); }} />
       <EmployeeDrawer employee={drawerEmployee} open={!!drawerEmployee} onClose={() => setDrawerEmployee(null)} onEdit={handleEditFromDrawer} />
       <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} />
