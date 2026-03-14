@@ -441,3 +441,98 @@ export function useAuditLogs(entityId?: string) {
     enabled: !isDemoMode,
   });
 }
+
+// ─── Departments ──────────────────────────────────────────────────────────────
+
+export function useDepartments(companyId: string) {
+  const { isDemoMode } = useAuth();
+  return useQuery({
+    queryKey: ['departments', companyId],
+    queryFn: async () => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/departments?select=*&company_id=eq.${companyId}&order=name.asc`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to load departments');
+      return (await res.json()) as { id: string; name: string; company_id: string; created_at: string }[];
+    },
+    enabled: !isDemoMode && !!companyId,
+  });
+}
+
+export function useAddDepartment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (dept: { name: string; company_id: string }) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/departments`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify(dept),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        if (body.includes('duplicate')) throw new Error('duplicate');
+        throw new Error('Failed to add department');
+      }
+      return (await res.json())[0];
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['departments', vars.company_id] });
+    },
+  });
+}
+
+export function useUpdateDepartment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/departments?id=eq.${id}`;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        if (body.includes('duplicate')) throw new Error('duplicate');
+        throw new Error('Failed to update department');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+    },
+  });
+}
+
+export function useDeleteDepartment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/departments?id=eq.${id}`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to delete department');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['departments'] });
+    },
+  });
+}
