@@ -204,6 +204,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          <DepartmentManager />
         </TabsContent>
 
         {/* My Profile & Notifications */}
