@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { Employee, ContractType } from '@/types/database';
 import { SALARY_BANDS } from '@/lib/mockData';
 
-const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
+
 
 interface InlineEditableRowProps {
   employee: Employee;
