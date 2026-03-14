@@ -132,7 +132,7 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave, department
               <Select value={watch('department') || ''} onValueChange={(v) => setValue('department', v)}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

@@ -124,7 +124,7 @@ export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit
           <Select value={draft.department || ''} onValueChange={(v) => setDraft({ ...draft, department: v })}>
             <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Dept" /></SelectTrigger>
             <SelectContent>
-              {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
             </SelectContent>
           </Select>
         </td>

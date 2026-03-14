@@ -111,6 +111,7 @@ export function EmployeeTable({
               canDelete={canDelete}
               selected={selectedIds.has(emp.id)}
               onSelectChange={(checked) => handleSelectRow(emp.id, checked)}
+              departments={departments}
             />
           ))}
         </tbody>
