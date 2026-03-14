@@ -107,7 +107,11 @@ export default function Employees() {
     toast.success(`Exported ${selected.length} employee${selected.length > 1 ? 's' : ''}`);
   };
 
-  const departments = [...new Set(employees.map(e => e.department).filter(Boolean))] as string[];
+  const { data: company } = useCompany();
+  const { data: dbDepartments } = useDepartments(company?.id ?? '');
+  const departments = isDemoMode
+    ? [...new Set(employees.map(e => e.department).filter(Boolean))] as string[]
+    : (dbDepartments ?? []).map(d => d.name);
 
   const filtered = useMemo(() => {
     const list = employees.filter((e) => {
