@@ -28,7 +28,7 @@ interface InlineEditableRowProps {
   departments?: string[];
 }
 
-export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange }: InlineEditableRowProps) {
+export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange, departments = [] }: InlineEditableRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Employee>>({});
   const [natOpen, setNatOpen] = useState(false);
