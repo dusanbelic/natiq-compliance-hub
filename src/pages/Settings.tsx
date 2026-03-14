@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { MOCK_COMPANY, MOCK_ENTITIES, MOCK_TEAM_MEMBERS, COUNTRY_FLAGS } from '@/lib/mockData';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, UserPlus, CreditCard, Download, Check, AlertTriangle, Loader2 } from 'lucide-react';
+import { Plus, UserPlus, CreditCard, Download, Check, AlertTriangle, Loader2, Building2 } from 'lucide-react';
+import { DepartmentManager } from '@/components/settings/DepartmentManager';
 import { InviteTeamDialog } from '@/components/settings/InviteTeamDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -203,6 +204,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          <DepartmentManager />
         </TabsContent>
 
         {/* My Profile & Notifications */}
