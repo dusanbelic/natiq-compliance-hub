@@ -19,6 +19,7 @@ interface EmployeeTableProps {
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   allFilteredIds: string[];
+  departments?: string[];
 }
 
 const COLUMNS: [SortKey, string, string][] = [
