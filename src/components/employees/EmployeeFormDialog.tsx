@@ -17,7 +17,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import type { Employee, ContractType } from '@/types/database';
 import { toast } from 'sonner';
 
-const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
+
 
 const schema = z.object({
   full_name: z.string().min(1, 'Name is required').max(100),
