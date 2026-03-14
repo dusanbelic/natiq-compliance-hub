@@ -19,6 +19,7 @@ interface EmployeeTableProps {
   selectedIds: Set<string>;
   onSelectionChange: (ids: Set<string>) => void;
   allFilteredIds: string[];
+  departments?: string[];
 }
 
 const COLUMNS: [SortKey, string, string][] = [
@@ -48,6 +49,7 @@ export function EmployeeTable({
   selectedIds,
   onSelectionChange,
   allFilteredIds,
+  departments,
 }: EmployeeTableProps) {
   const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.has(id));
   const someSelected = allFilteredIds.some(id => selectedIds.has(id)) && !allSelected;
@@ -109,6 +111,7 @@ export function EmployeeTable({
               canDelete={canDelete}
               selected={selectedIds.has(emp.id)}
               onSelectChange={(checked) => handleSelectRow(emp.id, checked)}
+              departments={departments}
             />
           ))}
         </tbody>

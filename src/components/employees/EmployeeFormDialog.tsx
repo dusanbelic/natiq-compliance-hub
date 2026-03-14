@@ -17,7 +17,7 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import type { Employee, ContractType } from '@/types/database';
 import { toast } from 'sonner';
 
-const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
+
 
 const schema = z.object({
   full_name: z.string().min(1, 'Name is required').max(100),
@@ -38,9 +38,10 @@ interface EmployeeFormDialogProps {
   onClose: () => void;
   employee?: Employee | null;
   onSave: (data: FormData) => void;
+  departments?: string[];
 }
 
-export function EmployeeFormDialog({ open, onClose, employee, onSave }: EmployeeFormDialogProps) {
+export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [] }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
   const [nationalityOpen, setNationalityOpen] = useState(false);
 
@@ -131,7 +132,7 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave }: Employee
               <Select value={watch('department') || ''} onValueChange={(v) => setValue('department', v)}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

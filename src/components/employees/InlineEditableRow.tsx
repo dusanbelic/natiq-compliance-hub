@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import type { Employee, ContractType } from '@/types/database';
 import { SALARY_BANDS } from '@/lib/mockData';
 
-const DEPARTMENTS = ['Engineering', 'Sales', 'Finance', 'Operations', 'HR', 'Marketing', 'Management', 'Legal', 'Support'];
+
 
 interface InlineEditableRowProps {
   employee: Employee;
@@ -25,9 +25,10 @@ interface InlineEditableRowProps {
   canDelete: boolean;
   selected?: boolean;
   onSelectChange?: (checked: boolean) => void;
+  departments?: string[];
 }
 
-export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange }: InlineEditableRowProps) {
+export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange, departments = [] }: InlineEditableRowProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Partial<Employee>>({});
   const [natOpen, setNatOpen] = useState(false);
@@ -123,7 +124,7 @@ export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit
           <Select value={draft.department || ''} onValueChange={(v) => setDraft({ ...draft, department: v })}>
             <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Dept" /></SelectTrigger>
             <SelectContent>
-              {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+              {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
             </SelectContent>
           </Select>
         </td>

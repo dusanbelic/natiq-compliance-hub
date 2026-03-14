@@ -16,7 +16,7 @@ import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
-import { useDeleteEmployee, useUpdateEmployee } from '@/hooks/use-supabase-data';
+import { useDeleteEmployee, useUpdateEmployee, useCompany, useDepartments } from '@/hooks/use-supabase-data';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
@@ -107,7 +107,11 @@ export default function Employees() {
     toast.success(`Exported ${selected.length} employee${selected.length > 1 ? 's' : ''}`);
   };
 
-  const departments = [...new Set(employees.map(e => e.department).filter(Boolean))] as string[];
+  const { data: company } = useCompany();
+  const { data: dbDepartments } = useDepartments(company?.id ?? '');
+  const departments = isDemoMode
+    ? [...new Set(employees.map(e => e.department).filter(Boolean))] as string[]
+    : (dbDepartments ?? []).map(d => d.name);
 
   const filtered = useMemo(() => {
     const list = employees.filter((e) => {
@@ -231,7 +235,7 @@ export default function Employees() {
       ) : (
         <Card className="shadow-card">
           <CardContent className="p-0">
-            <EmployeeTable
+             <EmployeeTable
               rows={paginatedRows}
               sortKey={sortKey}
               sortDir={sortDir}
@@ -244,6 +248,7 @@ export default function Employees() {
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
               allFilteredIds={allFilteredIds}
+              departments={departments}
             />
             <EmployeePagination
               totalItems={filtered.length}
@@ -258,7 +263,7 @@ export default function Employees() {
 
       <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => { toast.success(`${data.length} employees imported`); refreshEntityData(); }} />
       <EmployeeDrawer employee={drawerEmployee} open={!!drawerEmployee} onClose={() => setDrawerEmployee(null)} onEdit={handleEditFromDrawer} />
-      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} />
+      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} departments={departments} />
     </div>
   );
 }
