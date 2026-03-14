@@ -25,6 +25,7 @@ interface InlineEditableRowProps {
   canDelete: boolean;
   selected?: boolean;
   onSelectChange?: (checked: boolean) => void;
+  departments?: string[];
 }
 
 export function InlineEditableRow({ employee, onSave, onDelete, onClick, canEdit, canDelete, selected, onSelectChange }: InlineEditableRowProps) {
