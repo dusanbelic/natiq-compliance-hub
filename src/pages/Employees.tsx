@@ -235,7 +235,7 @@ export default function Employees() {
       ) : (
         <Card className="shadow-card">
           <CardContent className="p-0">
-            <EmployeeTable
+             <EmployeeTable
               rows={paginatedRows}
               sortKey={sortKey}
               sortDir={sortDir}
@@ -248,6 +248,7 @@ export default function Employees() {
               selectedIds={selectedIds}
               onSelectionChange={setSelectedIds}
               allFilteredIds={allFilteredIds}
+              departments={departments}
             />
             <EmployeePagination
               totalItems={filtered.length}
