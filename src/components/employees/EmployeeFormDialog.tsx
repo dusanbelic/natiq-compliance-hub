@@ -41,7 +41,7 @@ interface EmployeeFormDialogProps {
   departments?: string[];
 }
 
-export function EmployeeFormDialog({ open, onClose, employee, onSave }: EmployeeFormDialogProps) {
+export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [] }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
   const [nationalityOpen, setNationalityOpen] = useState(false);
 
