@@ -49,6 +49,7 @@ export function EmployeeTable({
   selectedIds,
   onSelectionChange,
   allFilteredIds,
+  departments,
 }: EmployeeTableProps) {
   const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.has(id));
   const someSelected = allFilteredIds.some(id => selectedIds.has(id)) && !allSelected;
