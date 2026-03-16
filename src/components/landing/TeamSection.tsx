@@ -13,7 +13,7 @@ const FOUNDER = {
 // ────────────────────────────────────────────────────────────────────────
 
 export function TeamSection() {
-  return;
+  return null;
 
 
 
