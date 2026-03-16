@@ -13,21 +13,6 @@ export function SocialProofBar() {
     <section className="py-8 bg-card border-t">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-          {/* Avatars + waitlist */}
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-3">
-              {AVATAR_INITIALS.map((initials) => (
-                <div
-                  key={initials}
-                  className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-card"
-                  style={{ background: '#1B3A5C' }}
-                >
-                  <span className="text-white text-xs font-bold">{initials}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-sm text-muted-foreground">Join 20+ HR leaders already on the waitlist</p>
-          </div>
 
           {/* Testimonial */}
           {/* Replace with real testimonial from first design partner. Keep the same format. */}
