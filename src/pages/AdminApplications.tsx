@@ -220,6 +220,20 @@ export default function AdminApplications() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Approval confirmation dialog */}
+      <Dialog open={!!approvalTarget} onOpenChange={() => setApprovalTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Approve Application</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Send approval email to <strong>{approvalTarget?.full_name}</strong> at <strong>{approvalTarget?.work_email}</strong>?
+          </p>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => confirmApprove(false)}>Approve Without Email</Button>
+            <Button onClick={() => confirmApprove(true)}>Send &amp; Approve</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
