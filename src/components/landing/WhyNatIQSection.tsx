@@ -39,8 +39,8 @@ export function WhyNatIQSection() {
               key={card.title}
               className="bg-card rounded-r-lg p-5 border-l-[3px] border-primary"
             >
-              <h4 className="font-sora font-semibold text-sm mb-2">{card.title}</h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
+              <h4 className="font-sora font-semibold text-base mb-2">{card.title}</h4>
+              <p className="text-base text-muted-foreground leading-relaxed">{card.body}</p>
             </div>
           ))}
         </div>
