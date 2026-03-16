@@ -114,6 +114,11 @@ export default function Employees() {
     ? [...new Set(employees.map(e => e.department).filter(Boolean))] as string[]
     : (dbDepartments ?? []).map(d => d.name);
 
+  const { data: dbSalaryBands } = useSalaryBands(company?.id ?? '');
+  const salaryBands = isDemoMode
+    ? SALARY_BANDS
+    : (dbSalaryBands ?? []).map(b => b.name);
+
   const filtered = useMemo(() => {
     const list = employees.filter((e) => {
       const matchesSearch = e.full_name.toLowerCase().includes(search.toLowerCase()) ||
