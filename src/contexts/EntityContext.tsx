@@ -271,7 +271,7 @@ export function EntityProvider({ children }: { children: ReactNode }) {
       result[entity.id] = computeScoreFromEmployees(emps, entity, score, complianceRules);
     });
     return result;
-  }, [isDemoMode, entities, employeesByEntity, scoresByEntity]);
+  }, [isDemoMode, entities, employeesByEntity, scoresByEntity, complianceRules]);
 
   const dashboardData = useMemo((): DashboardData => {
     if (isDemoMode) {

@@ -73,6 +73,9 @@ export default function Compliance() {
         </CardContent>
       </Card>
 
+      <ComplianceDisclaimer country={selectedEntity.country} />
+      {selectedEntity.country === 'QA' && <QatarRegulationNotice />}
+
       <Card className="shadow-card">
         <CardHeader><CardTitle>Compliance by Department</CardTitle></CardHeader>
         <CardContent>
