@@ -227,9 +227,9 @@ export default function Landing() {
               <Card key={c.country} className="shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-default">
                 <CardContent className="p-6 text-center">
                   <span className="text-4xl mb-3 block">{c.flag}</span>
-                  <h3 className="font-sora font-bold text-lg">{c.country}</h3>
-                  <p className="text-sm text-primary font-medium mt-1">{c.program}</p>
-                  <p className="text-xs text-muted-foreground mt-2">{c.stat}</p>
+                  <h3 className="font-sora font-bold text-xl">{c.country}</h3>
+                  <p className="text-base text-primary font-medium mt-1">{c.program}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{c.stat}</p>
                 </CardContent>
               </Card>
             ))}
