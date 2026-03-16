@@ -99,7 +99,7 @@ export default function Signup() {
           </div>
 
           <h1 className="text-white font-sora font-bold text-4xl leading-tight mb-6">
-            Start your free<br />14-day trial
+            {isPartner ? 'Welcome, Design\nPartner!' : 'Start your free\n14-day trial'}
           </h1>
           <p className="text-white/80 text-lg mb-8">
             No credit card required. Get instant access to<br />
