@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEntity } from '@/contexts/EntityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -53,7 +54,7 @@ import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { selectedEntity, dashboardData, entities, loading, allScores } = useEntity();
+  const { selectedEntity, dashboardData, entities, loading, allScores, refreshEntityData } = useEntity();
   const { isDemoMode, profile } = useAuth();
   const { t } = useLanguage();
   const { score, compliance_history, department_breakdown } = dashboardData;
@@ -102,6 +103,16 @@ export default function Dashboard() {
       : null;
 
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalculate = () => {
+    setRecalculating(true);
+    refreshEntityData();
+    setTimeout(() => {
+      setRecalculating(false);
+      toast.success('Compliance scores recalculated');
+    }, 800);
+  };
   const trendIcon = score.trend >= 0 ? TrendingUp : TrendingDown;
   const trendColor = score.trend >= 0 ? 'text-status-green' : 'text-status-red';
   const isCompliant = score.status === 'COMPLIANT';
@@ -215,9 +226,9 @@ export default function Dashboard() {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  {t('Recalculate')}
+                <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating}>
+                  <RefreshCw className={`w-4 h-4 mr-2 ${recalculating ? 'animate-spin' : ''}`} />
+                  {recalculating ? 'Recalculating…' : t('Recalculate')}
                 </Button>
               </div>
             </CardHeader>
