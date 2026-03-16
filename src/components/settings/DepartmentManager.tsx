@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-export function DepartmentManager() {
+export function DepartmentManager({ scrollRef }: { scrollRef?: React.RefObject<HTMLDivElement> }) {
   const { isDemoMode } = useAuth();
   const { data: company } = useCompany();
   const companyId = company?.id ?? '';
