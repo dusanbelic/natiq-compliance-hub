@@ -88,6 +88,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { t } = useLanguage();
   const { canViewSettings } = usePermissions();
   const [entityDropdownOpen, setEntityDropdownOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
