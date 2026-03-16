@@ -74,6 +74,11 @@ export default function Recommendations() {
     toast.success('Action marked complete');
   };
 
+  const reopenRec = (id: string) => {
+    persistStatus(id, 'OPEN');
+    toast.info('Recommendation reopened');
+  };
+
   const markInProgress = (id: string) => {
     persistStatus(id, 'IN_PROGRESS');
     toast.info('Marked as in progress');
