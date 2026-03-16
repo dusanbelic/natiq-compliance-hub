@@ -168,7 +168,7 @@ export default function Landing() {
 
       {/* Problem */}
       <section className="py-20 bg-card">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-sm font-semibold tracking-widest text-primary mb-4">THE PROBLEM</p>
           <h2 className="font-sora font-bold text-3xl sm:text-4xl mb-12" style={{ color: '#1B3A5C' }}>
             68% of GCC HR teams track compliance on spreadsheets
