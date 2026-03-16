@@ -97,7 +97,7 @@ export type Database = {
           notes: string | null
           program_name: string
           source_url: string | null
-          target_percentage: number
+          target_percentage: number | null
         }
         Insert: {
           band_green_min?: number | null
@@ -113,7 +113,7 @@ export type Database = {
           notes?: string | null
           program_name: string
           source_url?: string | null
-          target_percentage: number
+          target_percentage?: number | null
         }
         Update: {
           band_green_min?: number | null
@@ -129,7 +129,7 @@ export type Database = {
           notes?: string | null
           program_name?: string
           source_url?: string | null
-          target_percentage?: number
+          target_percentage?: number | null
         }
         Relationships: []
       }

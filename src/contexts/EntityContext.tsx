@@ -20,10 +20,61 @@ interface EntityContextType {
 
 const EntityContext = createContext<EntityContextType | undefined>(undefined);
 
+/** Find the most specific matching compliance rule for an entity */
+function findMatchingRule(
+  rules: Tables<'compliance_rules'>[],
+  country: string,
+  sector: string | null,
+  employeeCount: number
+): Tables<'compliance_rules'> | null {
+  const today = new Date().toISOString().slice(0, 10);
+  
+  // Filter to active rules for this country
+  const activeRules = rules.filter(r => {
+    if (r.country !== country) return false;
+    if (r.effective_from > today) return false;
+    if (r.effective_to && r.effective_to < today) return false;
+    return true;
+  });
+
+  // Priority 1: country + sector + size range
+  if (sector) {
+    const sectorSizeMatch = activeRules.find(r =>
+      r.industry_sector === sector &&
+      r.company_size_min != null &&
+      employeeCount >= r.company_size_min &&
+      (r.company_size_max == null || employeeCount <= r.company_size_max)
+    );
+    if (sectorSizeMatch) return sectorSizeMatch;
+
+    // Priority 2: country + sector (no size constraint or size is null)
+    const sectorMatch = activeRules.find(r =>
+      r.industry_sector === sector &&
+      (r.company_size_min == null || employeeCount >= r.company_size_min) &&
+      (r.company_size_max == null || employeeCount <= r.company_size_max)
+    );
+    if (sectorMatch) return sectorMatch;
+  }
+
+  // Priority 3: country + null sector (default) with size match
+  const defaultSizeMatch = activeRules.find(r =>
+    r.industry_sector == null &&
+    r.company_size_min != null &&
+    employeeCount >= r.company_size_min &&
+    (r.company_size_max == null || employeeCount <= r.company_size_max)
+  );
+  if (defaultSizeMatch) return defaultSizeMatch;
+
+  // Priority 4: country + null sector (any)
+  const defaultMatch = activeRules.find(r => r.industry_sector == null);
+  return defaultMatch || null;
+}
+
 function computeScoreFromEmployees(
   employees: Tables<'employees'>[],
   entity: Entity,
-  complianceScore?: Tables<'compliance_scores'> | null
+  complianceScore?: Tables<'compliance_scores'> | null,
+  complianceRules?: Tables<'compliance_rules'>[]
 ): ScoreDetails {
   const qualifying = employees.filter(e => e.counts_toward_quota !== false);
   const nationals = qualifying.filter(e => e.is_national);
@@ -35,9 +86,15 @@ function computeScoreFromEmployees(
   const nationalsPt = nationals.filter(e => e.contract_type === 'part_time').length;
   const nationalsContract = employees.filter(e => e.is_national && e.contract_type === 'contract').length;
 
-  // Determine target from compliance score or default by country
-  const defaultTargets: Record<string, number> = { SA: 15, AE: 10, QA: 10, OM: 10 };
-  const target = defaultTargets[entity.country] ?? 10;
+  // Find matching rule using priority: sector+size > sector > country default
+  const matchedRule = complianceRules?.length
+    ? findMatchingRule(complianceRules, entity.country, entity.industry_sector, total)
+    : null;
+
+  const defaultTargets: Record<string, number> = { SA: 15, AE: 10, QA: 20, OM: 35 };
+  const target = matchedRule?.target_percentage
+    ? Number(matchedRule.target_percentage)
+    : defaultTargets[entity.country] ?? 10;
 
   const gap = Math.max(0, Math.ceil((target / 100) * total - nationalCount));
 
@@ -101,6 +158,7 @@ export function EntityProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!isDemoMode);
   const [employeesByEntity, setEmployeesByEntity] = useState<Record<string, Tables<'employees'>[]>>({});
   const [scoresByEntity, setScoresByEntity] = useState<Record<string, Tables<'compliance_scores'>>>({});
+  const [complianceRules, setComplianceRules] = useState<Tables<'compliance_rules'>[]>([]);
 
   // Fetch entities and employees from Supabase
   useEffect(() => {
@@ -140,10 +198,18 @@ export function EntityProvider({ children }: { children: ReactNode }) {
               .order('calculated_at', { ascending: false }).limit(1)
           );
 
-          const [empResults, scoreResults] = await Promise.all([
+          // Also fetch compliance rules
+          const rulesPromise = supabase.from('compliance_rules').select('*');
+
+          const [empResults, scoreResults, rulesResult] = await Promise.all([
             Promise.all(empPromises),
             Promise.all(scorePromises),
+            rulesPromise,
           ]);
+
+          if (!cancelled && rulesResult.data) {
+            setComplianceRules(rulesResult.data as Tables<'compliance_rules'>[]);
+          }
 
           if (cancelled) return;
 
@@ -202,10 +268,10 @@ export function EntityProvider({ children }: { children: ReactNode }) {
     entities.forEach(entity => {
       const emps = employeesByEntity[entity.id] || [];
       const score = scoresByEntity[entity.id];
-      result[entity.id] = computeScoreFromEmployees(emps, entity, score);
+      result[entity.id] = computeScoreFromEmployees(emps, entity, score, complianceRules);
     });
     return result;
-  }, [isDemoMode, entities, employeesByEntity, scoresByEntity]);
+  }, [isDemoMode, entities, employeesByEntity, scoresByEntity, complianceRules]);
 
   const dashboardData = useMemo((): DashboardData => {
     if (isDemoMode) {

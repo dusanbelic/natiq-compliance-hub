@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { CardSkeleton, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
+import { ComplianceDisclaimer, QatarRegulationNotice } from '@/components/ComplianceDisclaimer';
 
 export default function Compliance() {
   const { selectedEntity, dashboardData, loading, refreshEntityData } = useEntity();
@@ -71,6 +72,9 @@ export default function Compliance() {
           </table>
         </CardContent>
       </Card>
+
+      <ComplianceDisclaimer country={selectedEntity.country} />
+      {selectedEntity.country === 'QA' && <QatarRegulationNotice />}
 
       <Card className="shadow-card">
         <CardHeader><CardTitle>Compliance by Department</CardTitle></CardHeader>

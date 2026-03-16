@@ -48,6 +48,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { ShareComplianceModal } from '@/components/dashboard/ShareComplianceModal';
+import { ComplianceDisclaimer, QatarRegulationNotice } from '@/components/ComplianceDisclaimer';
 import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
@@ -119,6 +120,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <ComplianceDisclaimer country={selectedEntity.country} />
+      {selectedEntity.country === 'QA' && <QatarRegulationNotice />}
       {/* Zone A: Status Bar */}
       <Card className="shadow-card">
         <CardContent className="p-0">
