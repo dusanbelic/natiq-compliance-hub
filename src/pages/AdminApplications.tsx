@@ -181,7 +181,7 @@ export default function AdminApplications() {
                       <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_COLORS[app.status] || ''}`}>{app.status}</span></td>
                       <td className="p-3 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="ghost" className="text-status-green h-7 text-xs" onClick={() => updateStatus(app.id, 'approved')}>Approve</Button>
+                          <Button size="sm" variant="ghost" className="text-status-green h-7 text-xs" onClick={() => handleApprove(app)}>Approve</Button>
                           <Button size="sm" variant="ghost" className="text-amber h-7 text-xs" onClick={() => updateStatus(app.id, 'waitlist')}>Waitlist</Button>
                           <Button size="sm" variant="ghost" className="text-status-red h-7 text-xs" onClick={() => setConfirmReject(app)}>Reject</Button>
                         </div>
