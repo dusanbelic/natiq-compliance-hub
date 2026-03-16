@@ -28,6 +28,7 @@ const Reports = lazy(() => import('@/pages/Reports'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const AdminApplications = lazy(() => import('@/pages/AdminApplications'));
 const AIAssistant = lazy(() => import('@/components/ai/AIAssistant').then(m => ({ default: m.AIAssistant })));
 
 const queryClient = new QueryClient({
