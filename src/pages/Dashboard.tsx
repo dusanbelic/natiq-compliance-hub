@@ -48,6 +48,7 @@ import {
   Share2,
 } from 'lucide-react';
 import { ShareComplianceModal } from '@/components/dashboard/ShareComplianceModal';
+import { ComplianceDisclaimer, QatarRegulationNotice } from '@/components/ComplianceDisclaimer';
 import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
