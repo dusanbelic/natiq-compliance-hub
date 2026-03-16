@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,8 @@ export default function Settings() {
   const { isDemoMode, user } = useAuth();
   const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'profile';
 
   // Live data hooks
   const { data: company, isLoading: companyLoading } = useCompany();
@@ -136,7 +139,7 @@ export default function Settings() {
     <div className="space-y-6">
       <h1 className="font-sora font-bold text-2xl">Settings</h1>
 
-      <Tabs defaultValue="profile">
+      <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v })}>
         <TabsList>
           {canEditCompany && <TabsTrigger value="company">Company Profile</TabsTrigger>}
           <TabsTrigger value="profile">My Profile</TabsTrigger>
