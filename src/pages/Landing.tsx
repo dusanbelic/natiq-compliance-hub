@@ -180,7 +180,7 @@ export default function Landing() {
             { emoji: '💰', title: "Fines you didn't see coming", desc: 'SAR 10,000 per month per quota gap in Saudi. AED 96,000 per year per unfilled position in UAE.' }].
             map((p) =>
             <Card key={p.title} className="shadow-card text-left">
-                <CardContent className="p-8">
+                <CardContent className="p-6">
                   <span className="text-3xl mb-3 block">{p.emoji}</span>
                   <h3 className="font-sora font-semibold text-lg mb-2">{p.title}</h3>
                   <p className="text-base text-muted-foreground">{p.desc}</p>
