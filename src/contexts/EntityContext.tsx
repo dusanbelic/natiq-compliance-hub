@@ -198,10 +198,18 @@ export function EntityProvider({ children }: { children: ReactNode }) {
               .order('calculated_at', { ascending: false }).limit(1)
           );
 
-          const [empResults, scoreResults] = await Promise.all([
+          // Also fetch compliance rules
+          const rulesPromise = supabase.from('compliance_rules').select('*');
+
+          const [empResults, scoreResults, rulesResult] = await Promise.all([
             Promise.all(empPromises),
             Promise.all(scorePromises),
+            rulesPromise,
           ]);
+
+          if (!cancelled && rulesResult.data) {
+            setComplianceRules(rulesResult.data as Tables<'compliance_rules'>[]);
+          }
 
           if (cancelled) return;
 
