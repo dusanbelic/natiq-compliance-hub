@@ -30,14 +30,12 @@ export function AppShell() {
   // Use live notifications when authenticated, mock when in demo
   const { data: liveNotifications } = useNotifications();
 
-  const initialUnreadCount = useMemo(() => {
+  const unreadCount = useMemo(() => {
     if (isDemoMode) {
       return MOCK_NOTIFICATIONS.filter((n) => !n.read).length;
     }
     return (liveNotifications || []).filter((n) => !n.read).length;
   }, [isDemoMode, liveNotifications]);
-
-  const [unreadCount, setUnreadCount] = useState(initialUnreadCount);
 
   const handleUnreadCountChange = useCallback((count: number) => {
     setUnreadCount(count);
