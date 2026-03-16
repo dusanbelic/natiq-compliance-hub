@@ -156,8 +156,7 @@ export function AppShell() {
         onUnreadCountChange={handleUnreadCountChange}
       />
 
-      {/* Demo Feedback Button */}
-      {isDemoMode && <DemoFeedbackButton />}
+      {/* Demo Feedback Button removed */}
     </div>
   );
 }
