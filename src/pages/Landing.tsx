@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ComplianceRing } from '@/components/ComplianceRing';
-import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2, Play } from 'lucide-react';
+import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2, Play, Menu, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
