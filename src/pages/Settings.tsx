@@ -215,7 +215,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
-          <DepartmentManager />
+          <DepartmentManager scrollRef={deptRef} />
         </TabsContent>
 
         {/* My Profile & Notifications */}
