@@ -6,19 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { MOCK_REGULATORY_CHANGES, COUNTRY_FLAGS, MOCK_DASHBOARD_DATA } from '@/lib/mockData';
 import { ImpactBadge } from '@/components/PriorityBadge';
-import { ExternalLink, ChevronDown, AlertTriangle, CheckCircle, FileText } from 'lucide-react';
+import { ExternalLink, ChevronDown, AlertTriangle, CheckCircle, FileText, Loader2, Zap, X } from 'lucide-react';
 import { useEntity } from '@/contexts/EntityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRegulatoryChanges } from '@/hooks/use-supabase-data';
 import { useNavigate } from 'react-router-dom';
 import { CardSkeleton } from '@/components/ui/LoadingSkeleton';
 import { EmptyState } from '@/components/ui/LoadingSkeleton';
+import { analyseRegulatoryImpact, type RegulatoryImpactResult } from '@/lib/ai/analyseRegulatoryImpact';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type { Country, RegulatoryChange } from '@/types/database';
 import type { Tables } from '@/integrations/supabase/types';
 
 const FILTERS: (Country | 'ALL')[] = ['ALL', 'SA', 'AE', 'QA', 'OM'];
 
-// Normalize DB row to app RegulatoryChange type
 function toRegulatoryChange(row: Tables<'regulatory_changes'>): RegulatoryChange {
   return {
     id: row.id,
@@ -35,75 +37,101 @@ function toRegulatoryChange(row: Tables<'regulatory_changes'>): RegulatoryChange
   };
 }
 
-function ImpactAnalysis({ change, entityData }: { change: RegulatoryChange; entityData: typeof MOCK_DASHBOARD_DATA[string] | null }) {
+const SEVERITY_COLORS: Record<string, string> = {
+  HIGH: 'border-l-4 border-l-status-red',
+  MEDIUM: 'border-l-4 border-l-amber',
+  LOW: 'border-l-4 border-l-primary',
+  NONE: 'border-l-4 border-l-muted-foreground',
+};
+
+const SEVERITY_BADGE_CLASS: Record<string, string> = {
+  HIGH: 'badge-high-impact',
+  MEDIUM: 'badge-medium-impact',
+  LOW: 'badge-low-impact',
+  NONE: 'badge-unknown',
+};
+
+function AIImpactPanel({ result, change, onDismiss, onAddToRecs, entityId }: {
+  result: RegulatoryImpactResult;
+  change: RegulatoryChange;
+  onDismiss: () => void;
+  onAddToRecs: () => void;
+  entityId: string;
+}) {
   const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
 
-  if (!entityData) {
-    return (
-      <div className="p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground">
-        No entity data available for impact analysis.
-      </div>
-    );
-  }
-
-  const { score } = entityData;
-  const isAffected = change.affects_sectors === null || change.affects_sectors.includes(entityData.entity.industry_sector || '');
-
-  let impactText = '';
-  let gap = 0;
-  let isCompliant = score.ratio >= score.target;
-
-  if (change.change_type === 'TARGET_INCREASE') {
-    const newTarget = score.target + 3;
-    gap = newTarget - score.ratio;
-    isCompliant = score.ratio >= newTarget;
-    impactText = `If this change applies to your sector, the new target would be ${newTarget.toFixed(1)}%. Your current ratio is ${score.ratio.toFixed(1)}%.`;
-  } else if (change.change_type === 'NEW_REGULATION') {
-    impactText = `This regulatory update may affect your compliance reporting or eligibility criteria. Review the source documentation for details.`;
-  } else {
-    impactText = `Monitor this change for potential impacts on your operations.`;
-  }
+  const handleAddToRecs = async () => {
+    setAdding(true);
+    try {
+      for (const action of result.immediate_actions) {
+        await supabase.from('recommendations').insert({
+          entity_id: entityId,
+          title: action,
+          description: `From regulatory change: ${change.headline}`,
+          priority: 'OPTIONAL',
+          action_type: 'OTHER',
+          status: 'OPEN',
+        } as any);
+      }
+      toast.success('Actions added to recommendations');
+      navigate('/recommendations');
+    } catch {
+      toast.error('Failed to add recommendations');
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
-    <div className="p-4 bg-muted/30 rounded-lg space-y-3">
-      <div className="flex items-start gap-3">
-        {isAffected ? (
-          <AlertTriangle className="w-5 h-5 text-amber shrink-0 mt-0.5" />
-        ) : (
-          <CheckCircle className="w-5 h-5 text-status-green shrink-0 mt-0.5" />
-        )}
-        <div>
-          <p className="text-sm font-medium">
-            {isAffected ? 'This change may affect your company' : 'Your sector is not directly affected'}
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">{impactText}</p>
-        </div>
-      </div>
-
-      {isAffected && change.change_type === 'TARGET_INCREASE' && (
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="p-2 bg-card rounded">
-            <p className="text-xs text-muted-foreground">Current Ratio</p>
-            <p className="font-jetbrains font-bold">{score.ratio.toFixed(1)}%</p>
-          </div>
-          <div className="p-2 bg-card rounded">
-            <p className="text-xs text-muted-foreground">New Target</p>
-            <p className="font-jetbrains font-bold">{(score.target + 3).toFixed(1)}%</p>
-          </div>
-          <div className="p-2 bg-card rounded">
-            <p className="text-xs text-muted-foreground">Gap</p>
-            <p className={`font-jetbrains font-bold ${gap > 0 ? 'text-status-red' : 'text-status-green'}`}>
-              {gap > 0 ? `-${gap.toFixed(1)}%` : 'Compliant'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {isAffected && gap > 0 && (
-        <Button size="sm" onClick={() => navigate('/recommendations')}>
-          View Recommendations
+    <div className={`mt-3 p-4 rounded-lg bg-muted/30 space-y-3 animate-slide-up ${SEVERITY_COLORS[result.severity]}`}>
+      <div className="flex items-center justify-between">
+        <span className={`text-xs px-2 py-0.5 rounded font-medium ${SEVERITY_BADGE_CLASS[result.severity]}`}>
+          {result.severity} IMPACT
+        </span>
+        <Button size="sm" variant="ghost" onClick={onDismiss} className="h-6 w-6 p-0">
+          <X className="w-4 h-4" />
         </Button>
+      </div>
+      <p className="text-sm">{result.summary}</p>
+      <p className="text-sm text-muted-foreground"><strong>Current Status:</strong> {result.current_status}</p>
+      {result.gap !== null && result.gap !== undefined && (
+        <p className="text-sm"><strong>Gap:</strong> <span className="font-jetbrains text-status-red">{result.gap.toFixed(1)}%</span> below new target</p>
       )}
+      {result.immediate_actions.length > 0 && (
+        <div>
+          <p className="text-sm font-medium mb-1">Immediate Actions:</p>
+          <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+            {result.immediate_actions.map((a, i) => <li key={i}>{a}</li>)}
+          </ul>
+        </div>
+      )}
+      {result.time_to_act && (
+        <p className="text-sm text-amber"><strong>Time to Act:</strong> {result.time_to_act}</p>
+      )}
+      <div className="flex gap-2 pt-2">
+        <Button size="sm" onClick={handleAddToRecs} disabled={adding}>
+          {adding ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
+          Add to Recommendations
+        </Button>
+        <Button size="sm" variant="ghost" onClick={onDismiss}>Dismiss</Button>
+      </div>
+    </div>
+  );
+}
+
+function AIImpactError({ change, onDismiss }: { change: RegulatoryChange; onDismiss: () => void }) {
+  return (
+    <div className="mt-3 p-4 rounded-lg bg-muted/30 border-l-4 border-l-muted-foreground">
+      <p className="text-sm text-muted-foreground">
+        Could not analyse impact right now.{' '}
+        {change.source_url && (
+          <a href={change.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            View the source for manual review <ExternalLink className="w-3 h-3 inline" />
+          </a>
+        )}
+      </p>
+      <Button size="sm" variant="ghost" onClick={onDismiss} className="mt-2">Dismiss</Button>
     </div>
   );
 }
@@ -113,28 +141,54 @@ export default function Regulatory() {
   const { isDemoMode } = useAuth();
   const { data: liveChanges, isLoading } = useRegulatoryChanges();
   const [filter, setFilter] = useState<Country | 'ALL'>('ALL');
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [inAppAlerts, setInAppAlerts] = useState(true);
+  const [analysing, setAnalysing] = useState<Record<string, boolean>>({});
+  const [impacts, setImpacts] = useState<Record<string, RegulatoryImpactResult | 'error'>>({});
 
-  const entityData = isDemoMode
-    ? MOCK_DASHBOARD_DATA[selectedEntity.id]
-    : dashboardData;
+  const entityData = isDemoMode ? MOCK_DASHBOARD_DATA[selectedEntity.id] : dashboardData;
 
   const changes: RegulatoryChange[] = useMemo(() => {
     if (isDemoMode) return MOCK_REGULATORY_CHANGES;
     return (liveChanges || []).map(toRegulatoryChange);
   }, [isDemoMode, liveChanges]);
 
-  const filtered = filter === 'ALL'
-    ? changes
-    : changes.filter((c) => c.country === filter);
+  const filtered = filter === 'ALL' ? changes : changes.filter((c) => c.country === filter);
 
-  const toggleExpand = (id: string) => {
-    const next = new Set(expandedIds);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setExpandedIds(next);
+  const handleAnalyse = async (change: RegulatoryChange) => {
+    setAnalysing(prev => ({ ...prev, [change.id]: true }));
+    try {
+      const result = await analyseRegulatoryImpact({
+        change: {
+          country: change.country,
+          program: change.program,
+          headline: change.headline,
+          summary: change.summary,
+          change_type: change.change_type,
+          effective_date: change.effective_date,
+          affects_sectors: change.affects_sectors,
+        },
+        entity: {
+          name: selectedEntity.name,
+          country: selectedEntity.country,
+          industry_sector: selectedEntity.industry_sector,
+          current_ratio: entityData?.score.ratio ?? 0,
+          current_band: entityData?.score.band ?? 'UNKNOWN',
+          total_employees: entityData?.score.total_count ?? 0,
+          national_count: entityData?.score.national_count ?? 0,
+        },
+      });
+      setImpacts(prev => ({ ...prev, [change.id]: result }));
+    } catch (err) {
+      console.error('AI impact analysis error:', err);
+      setImpacts(prev => ({ ...prev, [change.id]: 'error' }));
+    } finally {
+      setAnalysing(prev => ({ ...prev, [change.id]: false }));
+    }
+  };
+
+  const dismissImpact = (id: string) => {
+    setImpacts(prev => { const next = { ...prev }; delete next[id]; return next; });
   };
 
   return (
@@ -179,17 +233,21 @@ export default function Regulatory() {
                         <p className="text-sm text-muted-foreground">{change.summary}</p>
 
                         <div className="flex gap-2 mt-3">
-                          <Collapsible open={expandedIds.has(change.id)} onOpenChange={() => toggleExpand(change.id)}>
-                            <CollapsibleTrigger asChild>
-                              <Button size="sm" variant="outline">
-                                View Impact
-                                <ChevronDown className={`w-4 h-4 ml-1 transition-transform ${expandedIds.has(change.id) ? 'rotate-180' : ''}`} />
-                              </Button>
-                            </CollapsibleTrigger>
-                            <CollapsibleContent className="mt-3">
-                              <ImpactAnalysis change={change} entityData={entityData} />
-                            </CollapsibleContent>
-                          </Collapsible>
+                          {!impacts[change.id] && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-primary border-primary/30 hover:bg-primary/5"
+                              onClick={() => handleAnalyse(change)}
+                              disabled={analysing[change.id]}
+                            >
+                              {analysing[change.id] ? (
+                                <><Loader2 className="w-4 h-4 mr-1 animate-spin" /> Analysing...</>
+                              ) : (
+                                <><Zap className="w-4 h-4 mr-1" /> Analyse Impact</>
+                              )}
+                            </Button>
+                          )}
 
                           {change.source_url && (
                             <Button size="sm" variant="ghost" asChild>
@@ -199,6 +257,20 @@ export default function Regulatory() {
                             </Button>
                           )}
                         </div>
+
+                        {impacts[change.id] && impacts[change.id] !== 'error' && (
+                          <AIImpactPanel
+                            result={impacts[change.id] as RegulatoryImpactResult}
+                            change={change}
+                            onDismiss={() => dismissImpact(change.id)}
+                            onAddToRecs={() => {}}
+                            entityId={selectedEntity.id}
+                          />
+                        )}
+
+                        {impacts[change.id] === 'error' && (
+                          <AIImpactError change={change} onDismiss={() => dismissImpact(change.id)} />
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -207,7 +279,6 @@ export default function Regulatory() {
             </div>
           )}
 
-          {/* Regulatory Calendar */}
           <Card className="shadow-card">
             <CardHeader><CardTitle>Upcoming Regulatory Dates</CardTitle></CardHeader>
             <CardContent>
@@ -231,7 +302,6 @@ export default function Regulatory() {
           </Card>
         </div>
 
-        {/* Alert Preferences */}
         <Card className="shadow-card h-fit">
           <CardHeader><CardTitle>Alert Preferences</CardTitle></CardHeader>
           <CardContent className="space-y-4">

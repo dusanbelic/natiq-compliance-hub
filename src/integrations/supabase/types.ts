@@ -213,6 +213,51 @@ export type Database = {
           },
         ]
       }
+      design_partner_applications: {
+        Row: {
+          applied_at: string
+          biggest_challenge: string | null
+          company_name: string
+          countries: string[] | null
+          full_name: string
+          headcount_band: string | null
+          id: string
+          internal_notes: string | null
+          job_title: string | null
+          referral_source: string | null
+          status: string
+          work_email: string
+        }
+        Insert: {
+          applied_at?: string
+          biggest_challenge?: string | null
+          company_name: string
+          countries?: string[] | null
+          full_name: string
+          headcount_band?: string | null
+          id?: string
+          internal_notes?: string | null
+          job_title?: string | null
+          referral_source?: string | null
+          status?: string
+          work_email: string
+        }
+        Update: {
+          applied_at?: string
+          biggest_challenge?: string | null
+          company_name?: string
+          countries?: string[] | null
+          full_name?: string
+          headcount_band?: string | null
+          id?: string
+          internal_notes?: string | null
+          job_title?: string | null
+          referral_source?: string | null
+          status?: string
+          work_email?: string
+        }
+        Relationships: []
+      }
       employees: {
         Row: {
           contract_type: Database["public"]["Enums"]["contract_type"] | null

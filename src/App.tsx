@@ -28,6 +28,7 @@ const Reports = lazy(() => import('@/pages/Reports'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
+const AdminApplications = lazy(() => import('@/pages/AdminApplications'));
 const AIAssistant = lazy(() => import('@/components/ai/AIAssistant').then(m => ({ default: m.AIAssistant })));
 
 const queryClient = new QueryClient({
@@ -148,6 +149,9 @@ function AppRoutes() {
             </EntityProvider>
           </ProtectedRoute>
         } />
+
+        {/* Admin */}
+        <Route path="/admin/applications" element={<AdminApplications />} />
 
         {/* Catch all */}
         <Route path="*" element={<NotFound />} />
