@@ -85,8 +85,10 @@ export default function Dashboard() {
         }
       : null;
 
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const trendIcon = score.trend >= 0 ? TrendingUp : TrendingDown;
   const trendColor = score.trend >= 0 ? 'text-status-green' : 'text-status-red';
+  const isCompliant = score.status === 'COMPLIANT';
 
   if (loading) {
     return (
