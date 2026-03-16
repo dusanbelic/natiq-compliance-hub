@@ -153,7 +153,7 @@ export default function Landing() {
               </p>
             </div>
             <div className="lg:w-[45%] flex justify-center">
-              <div className="bg-card rounded-2xl shadow-elevated p-6 space-y-4 transform rotate-3" style={{ minWidth: 300 }}>
+              <div className="bg-card rounded-2xl shadow-elevated p-6 space-y-4 transform sm:rotate-3 w-full max-w-[320px]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                     <span className="text-primary-foreground font-jetbrains font-bold text-xs">N</span>
