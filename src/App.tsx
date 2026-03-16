@@ -150,6 +150,9 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
 
+        {/* Admin */}
+        <Route path="/admin/applications" element={<AdminApplications />} />
+
         {/* Catch all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
