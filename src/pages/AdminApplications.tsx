@@ -59,10 +59,28 @@ export default function AdminApplications() {
 
   useEffect(() => { if (authed) fetchApps(); }, [authed]);
 
+  const [approvalTarget, setApprovalTarget] = useState<Application | null>(null);
+
   const updateStatus = async (id: string, status: string) => {
     await supabase.functions.invoke('admin-applications', { body: { action: 'update_status', id, status } });
     setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     toast.success(`Status updated to ${status}`);
+  };
+
+  const handleApprove = (app: Application) => {
+    setApprovalTarget(app);
+  };
+
+  const confirmApprove = async (sendEmail: boolean) => {
+    if (!approvalTarget) return;
+    await updateStatus(approvalTarget.id, 'approved');
+    if (sendEmail) {
+      const firstName = approvalTarget.full_name.split(' ')[0];
+      const emailContent = `Subject: You're in — NatIQ Design Partner Programme\n\nHi ${firstName},\n\nGreat news — you've been accepted into the NatIQ Design Partner Programme!\n\nHere's how to get started:\n1. Create your free account at https://natiq.io/signup?partner=true\n2. We'll reach out within 24 hours to schedule your onboarding call\n3. Your 12-month free access starts immediately on signup\n\nQuestions? Reply to this email directly and you'll reach the founders.\n\nThe NatIQ Team`;
+      console.log(`📧 Approval email to ${approvalTarget.full_name} <${approvalTarget.work_email}>:\n\n${emailContent}`);
+      toast.success('Email logged to console — configure email provider to send automatically');
+    }
+    setApprovalTarget(null);
   };
 
   const saveNotes = async (id: string, notes: string) => {
