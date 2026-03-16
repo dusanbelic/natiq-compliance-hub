@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Switch } from '@/components/ui/switch';
-import { getNationalityFlag, SALARY_BANDS } from '@/lib/mockData';
+import { getNationalityFlag } from '@/lib/mockData';
 import { NATIONALITIES } from '@/lib/nationalities';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
