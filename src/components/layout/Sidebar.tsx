@@ -219,6 +219,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
         {/* Help */}
         <button
+          onClick={() => setHelpOpen(true)}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors',
             collapsed && 'justify-center px-2'
@@ -227,6 +228,14 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <HelpCircle className="w-5 h-5" />
           {!collapsed && <span className="text-sm">{t('Help & Support')}</span>}
         </button>
+        <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
+          <DialogContent className="sm:max-w-sm text-center">
+            <DialogHeader>
+              <DialogTitle>{t('Help & Support')}</DialogTitle>
+            </DialogHeader>
+            <p className="text-muted-foreground py-4 text-lg font-medium">{t('Coming Soon')}</p>
+          </DialogContent>
+        </Dialog>
 
         {/* User Profile */}
         <UserProfileBadge collapsed={collapsed} profile={profile} isDemoMode={isDemoMode} />
