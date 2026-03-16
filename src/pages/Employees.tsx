@@ -16,7 +16,8 @@ import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
-import { useDeleteEmployee, useUpdateEmployee, useCompany, useDepartments } from '@/hooks/use-supabase-data';
+import { useDeleteEmployee, useUpdateEmployee, useCompany, useDepartments, useSalaryBands } from '@/hooks/use-supabase-data';
+import { SALARY_BANDS } from '@/lib/mockData';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
