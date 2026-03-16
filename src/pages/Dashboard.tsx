@@ -226,9 +226,9 @@ export default function Dashboard() {
                     <Share2 className="w-4 h-4" />
                   </Button>
                 )}
-                <Button variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  {t('Recalculate')}
+                <Button variant="outline" size="sm" onClick={handleRecalculate} disabled={recalculating}>
+                  <RefreshCw className={`w-4 h-4 mr-2 ${recalculating ? 'animate-spin' : ''}`} />
+                  {recalculating ? 'Recalculating…' : t('Recalculate')}
                 </Button>
               </div>
             </CardHeader>
