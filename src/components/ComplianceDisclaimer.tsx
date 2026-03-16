@@ -20,7 +20,7 @@ export function ComplianceDisclaimer({ country, className }: ComplianceDisclaime
   return (
     <Alert className={className}>
       <Info className="h-4 w-4" />
-      <AlertDescription className="text-xs text-muted-foreground">
+      <AlertDescription className="text-sm text-muted-foreground">
         Targets verified March 2026. Regulations change frequently. Always confirm current targets at your country's official portal before making compliance decisions.{' '}
         <a
           href={portal.url}
