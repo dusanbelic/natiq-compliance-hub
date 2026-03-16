@@ -269,7 +269,7 @@ export default function Employees() {
 
       <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => { toast.success(`${data.length} employees imported`); refreshEntityData(); }} />
       <EmployeeDrawer employee={drawerEmployee} open={!!drawerEmployee} onClose={() => setDrawerEmployee(null)} onEdit={handleEditFromDrawer} />
-      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} departments={departments} />
+      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} departments={departments} salaryBands={salaryBands} />
     </div>
   );
 }

@@ -217,6 +217,7 @@ export default function Settings() {
             </CardContent>
           </Card>
           <DepartmentManager scrollRef={deptRef} />
+          <SalaryBandManager />
         </TabsContent>
 
         {/* My Profile & Notifications */}
