@@ -48,40 +48,6 @@ export function WhyNatIQSection() {
             ))}
           </div>
 
-          {/* Right: Recognition */}
-          <div>
-            <h3 className="font-sora font-semibold text-lg mb-4" style={{ color: '#1B3A5C' }}>Recognition</h3>
-            <div className="bg-card rounded-lg p-6 border">
-              <h4 className="font-sora font-semibold text-sm mb-4">Press & Recognition</h4>
-              <div className="space-y-4">
-                {PRESS_ITEMS.map((item, i) => (
-                  <div key={i} className="flex items-center gap-4">
-                    {/* Replace with real press logo */}
-                    <div className="w-[100px] h-8 rounded bg-muted flex-shrink-0" />
-                    <p className="text-sm text-muted-foreground italic">{item.quote}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-8 pt-6 border-t">
-                <p className="text-xs text-muted-foreground mb-3">Featured in</p>
-                <div className="flex items-center gap-6">
-                  {ECOSYSTEM_LOGOS.map((name) => (
-                    <span
-                      key={name}
-                      className="text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity cursor-default"
-                      style={{ color: '#64748B' }}
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-4 text-center">
-              Backed by design partners across Saudi Arabia and the UAE.
-            </p>
-          </div>
         </div>
       </div>
     </section>
