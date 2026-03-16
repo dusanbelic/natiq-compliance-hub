@@ -65,7 +65,7 @@ function StatItem({ target, label }: {target: number;label: string;}) {
   return (
     <div ref={ref} className="text-center px-4">
       <p className="font-jetbrains font-bold text-4xl text-white">{value.toLocaleString()}</p>
-      <p className="mt-1 text-base" style={{ color: '#94A3B8', fontFamily: 'DM Sans, sans-serif' }}>
+      <p className="mt-1 text-base text-muted" style={{ color: '#94A3B8', fontFamily: 'DM Sans, sans-serif' }}>
         {label}
       </p>
     </div>);
