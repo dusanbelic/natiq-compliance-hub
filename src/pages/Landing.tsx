@@ -143,9 +143,13 @@ export default function Landing() {
                 </button>
               </div>
               {/* View Live Demo */}
-              <div className="mt-4">
-                <Button variant="outline" size="lg" className="rounded-full border-primary/40 text-primary hover:bg-primary/10 hover:text-primary text-base px-8 py-3" asChild>
-                  <Link to="/demo"><Play className="w-4 h-4 mr-2" /> View Live Demo</Link>
+              <div className="mt-4 group">
+                <Button variant="outline" size="lg" className="rounded-full border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary text-base px-8 py-3 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25 hover:scale-105" asChild>
+                  <Link to="/demo">
+                    <Play className="w-4 h-4 mr-2 transition-transform duration-300 group-hover:scale-110" />
+                    <span className="group-hover:hidden">View Live Demo</span>
+                    <span className="hidden group-hover:inline">Try It Now →</span>
+                  </Link>
                 </Button>
               </div>
               <p className="text-sm mt-4" style={{ color: '#94A3B8' }}>
