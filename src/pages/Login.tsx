@@ -30,6 +30,7 @@ export default function Login() {
       setLoading(false);
     } else {
       toast.success('Welcome back!');
+      setLoading(false);
       navigate('/dashboard');
     }
   };

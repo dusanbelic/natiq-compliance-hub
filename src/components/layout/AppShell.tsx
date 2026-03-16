@@ -38,7 +38,7 @@ export function AppShell() {
   }, [isDemoMode, liveNotifications]);
 
   const handleUnreadCountChange = useCallback((count: number) => {
-    setUnreadCount(count);
+    // No-op: unread count is now derived from liveNotifications
   }, []);
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed);
