@@ -248,7 +248,7 @@ export default function Landing() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-sora font-bold text-3xl sm:text-[40px] text-white mb-4">Join our Design Partner Programme</h2>
           <p className="text-lg mb-12" style={{ color: '#CBD5E1' }}>
-            We are working with 20 companies to shape the product. Design partners get NatIQ free for 12 months and direct founder access.
+            We are working with 20 companies to shape the product. Design partners get NatIQ free for 6 months and direct founder access.
           </p>
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {[
