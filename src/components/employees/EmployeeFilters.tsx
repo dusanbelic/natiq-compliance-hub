@@ -51,9 +51,6 @@ export function EmployeeFilters({
           {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => navigate('/settings?tab=company#departments')}>
-        <Settings className="w-4 h-4 mr-1" />Manage Departments
-      </Button>
     </div>
   );
 }
