@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -63,13 +63,13 @@ export default function Dashboard() {
   const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('partner_banner_dismissed') === 'true');
 
   // Check partner status on mount
-  useState(() => {
+  useEffect(() => {
     if (profile?.company_id && !isDemoMode) {
       supabase.from('companies').select('plan').eq('id', profile.company_id).single().then(({ data }) => {
         if (data?.plan === 'design_partner' as any) setIsPartner(true);
       });
     }
-  });
+  }, [profile?.company_id, isDemoMode]);
 
   // Live data hooks (disabled in demo mode via the hooks themselves)
   const { data: liveRecommendations } = useRecommendations(selectedEntity?.id);
