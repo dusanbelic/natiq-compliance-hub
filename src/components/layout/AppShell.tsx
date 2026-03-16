@@ -155,6 +155,9 @@ export function AppShell() {
         onClose={() => setNotificationDrawerOpen(false)}
         onUnreadCountChange={handleUnreadCountChange}
       />
+
+      {/* Demo Feedback Button */}
+      {isDemoMode && <DemoFeedbackButton />}
     </div>
   );
 }
