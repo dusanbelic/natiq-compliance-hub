@@ -11,6 +11,8 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NotificationDrawer } from './NotificationDrawer';
 import { MobileNav } from './MobileNav';
+import { DemoBanner } from './DemoBanner';
+import { DemoFeedbackButton } from './DemoFeedbackButton';
 import { AlertTriangle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -64,7 +66,9 @@ export function AppShell() {
 
   return (
     <div className={cn('flex flex-col h-screen overflow-hidden', isRTL && 'flex-row-reverse')}>
-      {/* Alert Banner for At-Risk Entities */}
+      {/* Demo Banner */}
+      {isDemoMode && <DemoBanner />}
+
       {atRiskEntities.map((entity) => {
         const data = MOCK_DASHBOARD_DATA[entity.id];
         if (!data) return null;
@@ -151,6 +155,9 @@ export function AppShell() {
         onClose={() => setNotificationDrawerOpen(false)}
         onUnreadCountChange={handleUnreadCountChange}
       />
+
+      {/* Demo Feedback Button */}
+      {isDemoMode && <DemoFeedbackButton />}
     </div>
   );
 }

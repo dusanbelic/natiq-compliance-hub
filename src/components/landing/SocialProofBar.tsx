@@ -1,0 +1,62 @@
+import { Server, Globe, Star } from 'lucide-react';
+
+const AVATAR_INITIALS = ['AH', 'SM', 'KR', 'FJ', 'NB'];
+
+const TRUST_BADGES = [
+  { icon: Server, label: 'Data hosted in AWS Bahrain' },
+  { icon: Globe, label: 'Arabic RTL Support' },
+  { icon: Star, label: 'Vision 2030 Aligned' },
+];
+
+export function SocialProofBar() {
+  return (
+    <section className="py-8 bg-card border-t">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+          {/* Avatars + waitlist */}
+          <div className="flex items-center gap-3">
+            <div className="flex -space-x-3">
+              {AVATAR_INITIALS.map((initials) => (
+                <div
+                  key={initials}
+                  className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-card"
+                  style={{ background: '#1B3A5C' }}
+                >
+                  <span className="text-white text-xs font-bold">{initials}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground">Join 20+ HR leaders already on the waitlist</p>
+          </div>
+
+          {/* Testimonial */}
+          {/* Replace with real testimonial from first design partner. Keep the same format. */}
+          <div className="max-w-sm text-center lg:text-left">
+            <div className="flex items-start gap-2">
+              <span className="text-3xl text-primary leading-none font-serif">"</span>
+              <div>
+                <p className="text-sm italic text-foreground">
+                  Finally a tool that understands the GCC compliance reality, not just a generic HR dashboard.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">— HR Director, Saudi Technology Company</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap items-center gap-2">
+            {TRUST_BADGES.map((badge) => (
+              <div
+                key={badge.label}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-xs"
+              >
+                <badge.icon className="w-3.5 h-3.5" />
+                {badge.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
