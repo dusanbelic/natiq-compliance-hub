@@ -52,9 +52,21 @@ import type { ComplianceStatus } from '@/types/database';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { selectedEntity, dashboardData, entities, loading, allScores } = useEntity();
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, profile } = useAuth();
   const { t } = useLanguage();
   const { score, compliance_history, department_breakdown } = dashboardData;
+
+  // Check if user is a design partner
+  const [isPartner, setIsPartner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('partner_banner_dismissed') === 'true');
+
+  useState(() => {
+    if (profile?.company_id && !isDemoMode) {
+      supabase.from('companies').select('plan').eq('id', profile.company_id).single().then(({ data }) => {
+        if ((data?.plan as string) === 'design_partner') setIsPartner(true);
+      });
+    }
+  });
 
   // Live data hooks (disabled in demo mode via the hooks themselves)
   const { data: liveRecommendations } = useRecommendations(selectedEntity?.id);
