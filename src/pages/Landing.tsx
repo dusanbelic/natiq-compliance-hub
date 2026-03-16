@@ -93,9 +93,9 @@ export default function Landing() {
             <span className="font-sora font-bold text-xl text-foreground">NatIQ</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <button onClick={() => productRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Product</button>
-            <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Resources</Link>
-            <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Design Partners</button>
+            <button onClick={() => productRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-base text-muted-foreground hover:text-foreground transition-colors">Product</button>
+            <Link to="/resources" className="text-base text-muted-foreground hover:text-foreground transition-colors">Resources</Link>
+            <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-base text-muted-foreground hover:text-foreground transition-colors">Design Partners</button>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" asChild><Link to="/login">Sign In</Link></Button>
