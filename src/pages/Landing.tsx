@@ -182,8 +182,8 @@ export default function Landing() {
             <Card key={p.title} className="shadow-card text-left">
                 <CardContent className="p-6">
                   <span className="text-3xl mb-3 block">{p.emoji}</span>
-                  <h3 className="font-sora font-semibold mb-2">{p.title}</h3>
-                  <p className="text-sm text-muted-foreground">{p.desc}</p>
+                  <h3 className="font-sora font-semibold text-lg mb-2">{p.title}</h3>
+                  <p className="text-base text-muted-foreground">{p.desc}</p>
                 </CardContent>
               </Card>
             )}
