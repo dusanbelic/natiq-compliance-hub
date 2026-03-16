@@ -63,6 +63,7 @@ export default function Signup() {
       countries: formData.countries,
       industry: formData.industry,
       headcount: formData.headcount,
+      is_design_partner: isPartner,
     });
 
     if (error) {
