@@ -35,6 +35,8 @@ export default function Settings() {
   const { isDemoMode, user } = useAuth();
   const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'profile';
 
   // Live data hooks
   const { data: company, isLoading: companyLoading } = useCompany();
