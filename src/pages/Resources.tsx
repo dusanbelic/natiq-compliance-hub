@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Clock, Loader2 } from 'lucide-react';
+import { ArrowRight, Clock, Loader2, Menu, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -37,6 +37,7 @@ export default function Resources() {
   const [email, setEmail] = useState('');
   const [subscribing, setSubscribing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +56,7 @@ export default function Resources() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
+      {/* Nav — matches Landing page */}
       <nav className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
@@ -64,11 +65,30 @@ export default function Resources() {
             </div>
             <span className="font-sora font-bold text-xl text-foreground">NatIQ</span>
           </Link>
+          <div className="hidden md:flex items-center gap-8">
+            <Link to="/" className="text-base text-muted-foreground hover:text-foreground transition-colors">Home</Link>
+            <span className="text-base text-foreground font-medium">Resources</span>
+            <Link to="/demo" className="text-base text-muted-foreground hover:text-foreground transition-colors">Demo</Link>
+          </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild><Link to="/login">Sign In</Link></Button>
-            <Button size="sm" asChild><Link to="/#apply">Apply for Early Access</Link></Button>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex"><Link to="/login">Sign In</Link></Button>
+            <Button size="sm" asChild className="hidden sm:inline-flex"><Link to="/#apply">Apply for Early Access</Link></Button>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-card px-4 py-3 space-y-2">
+            <Link to="/" className="block w-full py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+            <span className="block w-full py-2 text-sm text-foreground font-medium">Resources</span>
+            <Link to="/demo" className="block w-full py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Demo</Link>
+            <div className="flex gap-2 pt-2 border-t">
+              <Button variant="ghost" size="sm" asChild className="flex-1"><Link to="/login">Sign In</Link></Button>
+              <Button size="sm" asChild className="flex-1"><Link to="/#apply">Apply</Link></Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Header */}
