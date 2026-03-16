@@ -156,9 +156,13 @@ function AppRoutes() {
           </ProtectedRoute>
         } />
 
-        {/* Admin */}
-        <Route path="/admin/applications" element={<AdminApplications />} />
-        <Route path="/admin/metrics" element={<AdminMetrics />} />
+        {/* Admin (protected + role check inside components) */}
+        <Route path="/admin/applications" element={
+          <ProtectedRoute><AdminApplications /></ProtectedRoute>
+        } />
+        <Route path="/admin/metrics" element={
+          <ProtectedRoute><AdminMetrics /></ProtectedRoute>
+        } />
 
         {/* Catch all */}
         <Route path="*" element={<NotFound />} />
