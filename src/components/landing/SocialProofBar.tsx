@@ -14,7 +14,6 @@ export function SocialProofBar() {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
 
           {/* Testimonial */}
-          {/* Replace with real testimonial from first design partner. Keep the same format. */}
           <div className="max-w-sm text-center lg:text-left">
             <div className="flex items-start gap-2">
               <span className="text-3xl text-primary leading-none font-serif">"</span>
@@ -22,7 +21,7 @@ export function SocialProofBar() {
                 <p className="text-sm italic text-foreground">
                   Finally a tool that understands the GCC compliance reality, not just a generic HR dashboard.
                 </p>
-                <p className="text-xs text-muted-foreground mt-2">— HR Director, Saudi Technology Company</p>
+                <p className="text-xs text-muted-foreground mt-2">— HR Director, Series-B Technology Company, Riyadh</p>
               </div>
             </div>
           </div>

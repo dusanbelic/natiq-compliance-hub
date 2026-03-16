@@ -181,9 +181,12 @@ export default function Login() {
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
+            <button
+              onClick={() => toast.info('Coming soon! Sign-up will be available shortly.')}
+              className="text-primary hover:underline font-medium"
+            >
               Start free trial →
-            </Link>
+            </button>
           </p>
         </div>
       </div>

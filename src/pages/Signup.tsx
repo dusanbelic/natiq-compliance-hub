@@ -47,33 +47,9 @@ export default function Signup() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.countries.length === 0) {
-      toast.error('Please select at least one country');
-      return;
-    }
-
-    setLoading(true);
-
-    const { error } = await signUp(formData.email, formData.password, {
-      full_name: formData.fullName,
-      company_name: formData.companyName,
-      countries: formData.countries,
-      industry: formData.industry,
-      headcount: formData.headcount,
-      is_design_partner: isPartner,
-    });
-
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-    } else {
-      toast.success('Account created! Check your email to verify, then sign in.');
-      setLoading(false);
-      navigate('/login');
-    }
+    toast.info('Coming soon! Sign-up will be available shortly.');
   };
 
   const handleDemoMode = () => {

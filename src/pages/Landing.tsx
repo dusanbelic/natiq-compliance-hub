@@ -148,6 +148,13 @@ export default function Landing() {
                   <Link to="/demo"><Play className="w-4 h-4 mr-2" /> View Live Demo</Link>
                 </Button>
               </div>
+              <div className="mt-4">
+                <Button variant="ghost" size="lg" className="rounded-full text-white border border-white/30 hover:bg-white/10 text-base px-8" asChild>
+                  <a href="mailto:founders@natiq.io?subject=Schedule a Call">
+                    <Phone className="w-4 h-4 mr-2" /> Schedule a Call
+                  </a>
+                </Button>
+              </div>
               <p className="text-sm mt-4" style={{ color: '#94A3B8' }}>
                 Currently accepting 20 design partners · Free for 12 months · No payment required
               </p>
