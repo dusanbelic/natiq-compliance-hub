@@ -186,7 +186,10 @@ export default function Recommendations() {
                       <Button size="sm" onClick={() => markDone(rec.id)}>Mark Done</Button>
                     )}
                     {status === 'DONE' && (
-                      <Button size="sm" variant="outline" onClick={() => reopenRec(rec.id)}>Reopen</Button>
+                      <div className="flex flex-col gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => markInProgress(rec.id)}>⏳ In Progress</Button>
+                        <Button size="sm" variant="outline" onClick={() => reopenRec(rec.id)}>Reopen</Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>
