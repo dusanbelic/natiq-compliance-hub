@@ -205,7 +205,7 @@ export default function Dashboard() {
         <div className="lg:col-span-3 space-y-6">
           {/* Compliance Score Card */}
           <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
               <CardTitle className="font-sora text-lg">
                 {t('Overall Compliance Status')} — {COUNTRY_FLAGS[selectedEntity.country]} {selectedEntity.name}
               </CardTitle>
@@ -263,7 +263,7 @@ export default function Dashboard() {
 
           {/* Forecast Preview */}
           <Card className="shadow-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
               <CardTitle className="font-sora text-lg">{t('90-Day Forecast')}</CardTitle>
               <Button variant="link" size="sm" onClick={() => navigate('/forecast')}>
                 {t('View Full Forecast')} <ArrowRight className="w-4 h-4 ml-1" />

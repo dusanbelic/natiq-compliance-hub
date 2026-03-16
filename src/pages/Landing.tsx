@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ComplianceRing } from '@/components/ComplianceRing';
-import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2, Play } from 'lucide-react';
+import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2, Play, Menu, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -41,6 +41,7 @@ export default function Landing() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [form, setForm] = useState({
     full_name: '', work_email: '', company_name: '', job_title: '',
     countries: [] as string[], headcount_band: '', biggest_challenge: '', referral_source: ''
@@ -98,10 +99,25 @@ export default function Landing() {
             <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-base text-muted-foreground hover:text-foreground transition-colors">Design Partners</button>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild><Link to="/login">Sign In</Link></Button>
-            <Button size="sm" onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })}>Apply for Early Access</Button>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex"><Link to="/login">Sign In</Link></Button>
+            <Button size="sm" onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="hidden sm:inline-flex">Apply for Early Access</Button>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-card px-4 py-3 space-y-2">
+            <button onClick={() => { productRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-foreground">Product</button>
+            <Link to="/resources" className="block w-full py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
+            <button onClick={() => { partnerRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-foreground">Design Partners</button>
+            <div className="flex gap-2 pt-2 border-t">
+              <Button variant="ghost" size="sm" asChild className="flex-1"><Link to="/login">Sign In</Link></Button>
+              <Button size="sm" className="flex-1" onClick={() => { partnerRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}>Apply</Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
@@ -137,7 +153,7 @@ export default function Landing() {
               </p>
             </div>
             <div className="lg:w-[45%] flex justify-center">
-              <div className="bg-card rounded-2xl shadow-elevated p-6 space-y-4 transform rotate-3" style={{ minWidth: 300 }}>
+              <div className="bg-card rounded-2xl shadow-elevated p-6 space-y-4 transform sm:rotate-3 w-full max-w-[320px]">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                     <span className="text-primary-foreground font-jetbrains font-bold text-xs">N</span>
@@ -377,7 +393,7 @@ export default function Landing() {
               <p className="text-sm" style={{ color: '#94A3B8' }}>Nationalization compliance, simplified.</p>
               <p className="text-xs mt-2" style={{ color: '#64748B' }}>© 2025 NatIQ. All rights reserved.</p>
             </div>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-4 sm:gap-6">
               <Link to="/dashboard" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Dashboard</Link>
               <Link to="/login" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Sign In</Link>
               <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Apply for Access</button>

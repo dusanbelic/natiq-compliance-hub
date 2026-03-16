@@ -154,21 +154,21 @@ export default function Employees() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="font-sora font-bold text-2xl">
           Employees <span className="text-muted-foreground text-lg">({employees.length})</span>
         </h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => exportEmployeesCSV(employees, selectedEntity.name)}>
-            <Download className="w-4 h-4 mr-2" />Export CSV
+            <Download className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Export CSV</span>
           </Button>
           {canEditEmployees && (
             <>
-              <Button variant="outline" onClick={() => setCsvOpen(true)}>
-                <Upload className="w-4 h-4 mr-2" />Import CSV
+              <Button variant="outline" size="sm" onClick={() => setCsvOpen(true)}>
+                <Upload className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Import CSV</span>
               </Button>
-              <Button onClick={handleAddEmployee}>
-                <Plus className="w-4 h-4 mr-2" />Add Employee
+              <Button size="sm" onClick={handleAddEmployee}>
+                <Plus className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Add Employee</span>
               </Button>
             </>
           )}
