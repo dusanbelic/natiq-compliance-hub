@@ -116,7 +116,7 @@ export default function Login() {
                 <Label htmlFor="password">Password</Label>
                 <button
                   type="button"
-                  onClick={() => setForgotOpen(true)}
+                  onClick={() => toast.info('Coming soon! Password reset will be available shortly.')}
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
