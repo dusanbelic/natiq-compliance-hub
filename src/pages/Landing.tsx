@@ -206,7 +206,7 @@ export default function Landing() {
                 <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-jetbrains font-bold text-xl mb-4">{s.step}</div>
                 <h3 className="font-sora font-semibold text-lg mb-2">{s.title}</h3>
                 <p className="text-muted-foreground text-base leading-snug">{s.desc}</p>
-                {i < 2 && <ArrowRight className="w-5 h-5 text-primary mt-4 hidden md:block rotate-0" />}
+                
               </div>
             )}
           </div>
