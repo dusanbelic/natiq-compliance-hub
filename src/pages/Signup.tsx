@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,8 @@ const HEADCOUNT_OPTIONS = ['1-49', '50-199', '200-999', '1000+'];
 
 export default function Signup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPartner = searchParams.get('partner') === 'true';
   const { signUp, enterDemoMode } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -61,6 +63,7 @@ export default function Signup() {
       countries: formData.countries,
       industry: formData.industry,
       headcount: formData.headcount,
+      is_design_partner: isPartner,
     });
 
     if (error) {
@@ -96,7 +99,7 @@ export default function Signup() {
           </div>
 
           <h1 className="text-white font-sora font-bold text-4xl leading-tight mb-6">
-            Start your free<br />14-day trial
+            {isPartner ? 'Welcome, Design\nPartner!' : 'Start your free\n14-day trial'}
           </h1>
           <p className="text-white/80 text-lg mb-8">
             No credit card required. Get instant access to<br />
@@ -136,8 +139,12 @@ export default function Signup() {
           </div>
 
           <div className="text-center lg:text-left">
-            <h2 className="font-sora font-bold text-2xl text-foreground">Start your free trial</h2>
-            <p className="text-muted-foreground mt-1">No credit card required. 14 days free.</p>
+            <h2 className="font-sora font-bold text-2xl text-foreground">
+              {isPartner ? 'Create your Design Partner account' : 'Start your free trial'}
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              {isPartner ? '12 months free. Direct founder access.' : 'No credit card required. 14 days free.'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

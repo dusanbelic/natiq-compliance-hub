@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 import { useEntity } from '@/contexts/EntityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,15 +45,30 @@ import {
   Radio,
   Lightbulb,
   RefreshCw,
+  Share2,
 } from 'lucide-react';
+import { ShareComplianceModal } from '@/components/dashboard/ShareComplianceModal';
 import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { selectedEntity, dashboardData, entities, loading, allScores } = useEntity();
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, profile } = useAuth();
   const { t } = useLanguage();
   const { score, compliance_history, department_breakdown } = dashboardData;
+
+  // Check if user is a design partner
+  const [isPartner, setIsPartner] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(() => localStorage.getItem('partner_banner_dismissed') === 'true');
+
+  // Check partner status on mount
+  useState(() => {
+    if (profile?.company_id && !isDemoMode) {
+      supabase.from('companies').select('plan').eq('id', profile.company_id).single().then(({ data }) => {
+        if (data?.plan === 'design_partner' as any) setIsPartner(true);
+      });
+    }
+  });
 
   // Live data hooks (disabled in demo mode via the hooks themselves)
   const { data: liveRecommendations } = useRecommendations(selectedEntity?.id);
@@ -83,8 +100,10 @@ export default function Dashboard() {
         }
       : null;
 
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const trendIcon = score.trend >= 0 ? TrendingUp : TrendingDown;
   const trendColor = score.trend >= 0 ? 'text-status-green' : 'text-status-red';
+  const isCompliant = score.status === 'COMPLIANT';
 
   if (loading) {
     return (
@@ -187,10 +206,17 @@ export default function Dashboard() {
               <CardTitle className="font-sora text-lg">
                 {t('Overall Compliance Status')} — {COUNTRY_FLAGS[selectedEntity.country]} {selectedEntity.name}
               </CardTitle>
-              <Button variant="outline" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                {t('Recalculate')}
-              </Button>
+              <div className="flex items-center gap-2">
+                {isCompliant && (
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShareModalOpen(true)} title="Share achievement">
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button variant="outline" size="sm">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {t('Recalculate')}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-8">
@@ -465,6 +491,32 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Design Partner Welcome Banner */}
+      {isPartner && !bannerDismissed && (
+        <Card className="shadow-card border-amber bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎉</span>
+              <div>
+                <p className="font-sora font-bold text-sm">Welcome, Design Partner!</p>
+                <p className="text-xs text-muted-foreground">Your 12-month free access is active. Your feedback shapes this product.</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => { localStorage.setItem('partner_banner_dismissed', 'true'); setBannerDismissed(true); }}>
+              Dismiss
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Share Modal */}
+      <ShareComplianceModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        entity={selectedEntity}
+        score={score}
+      />
     </div>
   );
 }

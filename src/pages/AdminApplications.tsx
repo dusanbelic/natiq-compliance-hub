@@ -59,10 +59,28 @@ export default function AdminApplications() {
 
   useEffect(() => { if (authed) fetchApps(); }, [authed]);
 
+  const [approvalTarget, setApprovalTarget] = useState<Application | null>(null);
+
   const updateStatus = async (id: string, status: string) => {
     await supabase.functions.invoke('admin-applications', { body: { action: 'update_status', id, status } });
     setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     toast.success(`Status updated to ${status}`);
+  };
+
+  const handleApprove = (app: Application) => {
+    setApprovalTarget(app);
+  };
+
+  const confirmApprove = async (sendEmail: boolean) => {
+    if (!approvalTarget) return;
+    await updateStatus(approvalTarget.id, 'approved');
+    if (sendEmail) {
+      const firstName = approvalTarget.full_name.split(' ')[0];
+      const emailContent = `Subject: You're in — NatIQ Design Partner Programme\n\nHi ${firstName},\n\nGreat news — you've been accepted into the NatIQ Design Partner Programme!\n\nHere's how to get started:\n1. Create your free account at https://natiq.io/signup?partner=true\n2. We'll reach out within 24 hours to schedule your onboarding call\n3. Your 12-month free access starts immediately on signup\n\nQuestions? Reply to this email directly and you'll reach the founders.\n\nThe NatIQ Team`;
+      console.log(`📧 Approval email to ${approvalTarget.full_name} <${approvalTarget.work_email}>:\n\n${emailContent}`);
+      toast.success('Email logged to console — configure email provider to send automatically');
+    }
+    setApprovalTarget(null);
   };
 
   const saveNotes = async (id: string, notes: string) => {
@@ -163,7 +181,7 @@ export default function AdminApplications() {
                       <td className="p-3"><span className={`text-xs px-2 py-0.5 rounded font-medium ${STATUS_COLORS[app.status] || ''}`}>{app.status}</span></td>
                       <td className="p-3 text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="ghost" className="text-status-green h-7 text-xs" onClick={() => updateStatus(app.id, 'approved')}>Approve</Button>
+                          <Button size="sm" variant="ghost" className="text-status-green h-7 text-xs" onClick={() => handleApprove(app)}>Approve</Button>
                           <Button size="sm" variant="ghost" className="text-amber h-7 text-xs" onClick={() => updateStatus(app.id, 'waitlist')}>Waitlist</Button>
                           <Button size="sm" variant="ghost" className="text-status-red h-7 text-xs" onClick={() => setConfirmReject(app)}>Reject</Button>
                         </div>
@@ -199,6 +217,20 @@ export default function AdminApplications() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmReject(null)}>Cancel</Button>
             <Button variant="destructive" onClick={() => { if (confirmReject) { updateStatus(confirmReject.id, 'rejected'); setConfirmReject(null); } }}>Reject</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval confirmation dialog */}
+      <Dialog open={!!approvalTarget} onOpenChange={() => setApprovalTarget(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Approve Application</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Send approval email to <strong>{approvalTarget?.full_name}</strong> at <strong>{approvalTarget?.work_email}</strong>?
+          </p>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => confirmApprove(false)}>Approve Without Email</Button>
+            <Button onClick={() => confirmApprove(true)}>Send &amp; Approve</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
