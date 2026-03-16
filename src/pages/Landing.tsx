@@ -128,7 +128,7 @@ export default function Landing() {
               </div>
               {/* View Live Demo */}
               <div className="mt-4">
-                <Button variant="outline" size="lg" className="rounded-full border-primary/40 text-primary hover:bg-primary/10 hover:text-primary" asChild>
+                <Button variant="outline" size="lg" className="rounded-full border-primary/40 text-primary hover:bg-primary/10 hover:text-primary text-base px-8 py-3" asChild>
                   <Link to="/demo"><Play className="w-4 h-4 mr-2" /> View Live Demo</Link>
                 </Button>
               </div>
