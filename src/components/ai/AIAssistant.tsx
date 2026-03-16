@@ -218,7 +218,7 @@ export function AIAssistant() {
     return (
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
+        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 w-14 h-14 rounded-full shadow-lg z-50"
         size="icon"
       >
         <MessageCircle className="w-6 h-6" />
@@ -229,7 +229,7 @@ export function AIAssistant() {
   if (minimized) {
     return (
       <div
-        className="fixed bottom-6 right-6 bg-primary text-primary-foreground rounded-full px-4 py-2 shadow-lg cursor-pointer z-50 flex items-center gap-2"
+        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 bg-primary text-primary-foreground rounded-full px-4 py-2 shadow-lg cursor-pointer z-50 flex items-center gap-2"
         onClick={() => setMinimized(false)}
       >
         <Bot className="w-5 h-5" />
@@ -239,7 +239,7 @@ export function AIAssistant() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-card border rounded-xl shadow-elevated z-50 flex flex-col overflow-hidden">
+    <div className="fixed bottom-20 right-0 left-0 sm:left-auto sm:bottom-20 lg:bottom-6 lg:right-6 sm:right-4 sm:w-96 h-[70vh] sm:h-[500px] bg-card border rounded-t-xl sm:rounded-xl shadow-elevated z-50 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-primary text-primary-foreground">
         <div className="flex items-center gap-2">
