@@ -103,7 +103,7 @@ export function DepartmentManager({ scrollRef }: { scrollRef?: React.RefObject<H
   };
 
   return (
-    <Card className="shadow-card">
+    <Card ref={scrollRef} className="shadow-card" id="departments">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Departments</CardTitle>
         {!adding && (
