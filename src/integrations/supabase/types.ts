@@ -184,6 +184,30 @@ export type Database = {
           },
         ]
       }
+      demo_feedback: {
+        Row: {
+          challenge_text: string | null
+          id: string
+          referral_source: string | null
+          submitted_at: string
+          would_use: string | null
+        }
+        Insert: {
+          challenge_text?: string | null
+          id?: string
+          referral_source?: string | null
+          submitted_at?: string
+          would_use?: string | null
+        }
+        Update: {
+          challenge_text?: string | null
+          id?: string
+          referral_source?: string | null
+          submitted_at?: string
+          would_use?: string | null
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           company_id: string
@@ -576,6 +600,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      resource_subscribers: {
+        Row: {
+          email: string
+          id: string
+          source: string | null
+          subscribed_at: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          source?: string | null
+          subscribed_at?: string
+        }
+        Relationships: []
       }
       user_profiles: {
         Row: {
