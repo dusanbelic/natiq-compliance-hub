@@ -119,9 +119,8 @@ export default function Reports() {
       if (id === 2) {
         format === 'excel' ? await exportWorkforceAuditXLSX(employees, dashboardData) : exportCompliancePDF(dashboardData);
       } else if (id === 3 && forecastData) {
-        format === 'pdf'
-          ? exportForecastPDF(dashboardData, forecastData)
-          : await exportEmployeesXLSX(employees, selectedEntity.name);
+        // Forecast report - PDF for both since no dedicated XLSX export exists
+        exportForecastPDF(dashboardData, forecastData);
       } else if (id === 4) {
         format === 'excel' ? await exportRegulatoryXLSX(regulatoryChanges) : exportRegulatoryPDF(regulatoryChanges);
       }
