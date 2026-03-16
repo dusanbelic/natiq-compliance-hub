@@ -22,6 +22,8 @@ const HEADCOUNT_OPTIONS = ['1-49', '50-199', '200-999', '1000+'];
 
 export default function Signup() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPartner = searchParams.get('partner') === 'true';
   const { signUp, enterDemoMode } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
