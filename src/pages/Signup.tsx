@@ -70,8 +70,9 @@ export default function Signup() {
       toast.error(error.message);
       setLoading(false);
     } else {
-      toast.success('Account created! Check your email to verify.');
-      navigate('/onboarding');
+      toast.success('Account created! Check your email to verify, then sign in.');
+      setLoading(false);
+      navigate('/login');
     }
   };
 

@@ -318,20 +318,29 @@ export function useUserProfile() {
 // ─── Company ────────────────────────────────────────────────────────────────
 
 export function useCompany() {
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, user } = useAuth();
 
   return useQuery({
-    queryKey: ['company'],
+    queryKey: ['company', user?.id],
     queryFn: async () => {
+      // Get the user's company_id from their profile first
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('company_id')
+        .eq('id', user!.id)
+        .single();
+      
+      if (!profile?.company_id) return null;
+
       const { data, error } = await supabase
         .from('companies')
         .select('*')
-        .limit(1)
+        .eq('id', profile.company_id)
         .single();
       if (error) throw error;
       return data as Tables<'companies'>;
     },
-    enabled: !isDemoMode,
+    enabled: !isDemoMode && !!user?.id,
   });
 }
 

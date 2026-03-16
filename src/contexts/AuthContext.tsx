@@ -117,7 +117,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
       
-      if (!existingSession && !isDemoMode) {
+      // Always finish loading regardless of session state
+      if (!isDemoMode) {
         setLoading(false);
       }
     });

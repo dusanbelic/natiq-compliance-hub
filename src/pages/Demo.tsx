@@ -13,7 +13,7 @@ export default function Demo() {
   useEffect(() => {
     enterDemoMode();
     navigate('/dashboard', { replace: true });
-  }, []);
+  }, [enterDemoMode, navigate]);
 
   return null;
 }

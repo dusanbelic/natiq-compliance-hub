@@ -238,7 +238,6 @@ export function EntityProvider({ children }: { children: ReactNode }) {
 
   const refreshEntityData = useCallback(() => {
     if (isDemoMode || !user) return;
-    // Re-trigger fetch by toggling a state (simplest: re-run effect)
     setLoading(true);
     (async () => {
       try {
@@ -246,10 +245,21 @@ export function EntityProvider({ children }: { children: ReactNode }) {
         const ents = (entitiesData || []) as Entity[];
         setEntities(ents);
         if (ents.length > 0) {
-          const empResults = await Promise.all(ents.map(e => supabase.from('employees').select('*').eq('entity_id', e.id)));
+          const [empResults, scoreResults, rulesResult] = await Promise.all([
+            Promise.all(ents.map(e => supabase.from('employees').select('*').eq('entity_id', e.id))),
+            Promise.all(ents.map(e => supabase.from('compliance_scores').select('*').eq('entity_id', e.id).order('calculated_at', { ascending: false }).limit(1))),
+            supabase.from('compliance_rules').select('*'),
+          ]);
           const empMap: Record<string, Tables<'employees'>[]> = {};
-          ents.forEach((e, i) => { empMap[e.id] = (empResults[i].data || []) as Tables<'employees'>[]; });
+          const scrMap: Record<string, Tables<'compliance_scores'>> = {};
+          ents.forEach((e, i) => {
+            empMap[e.id] = (empResults[i].data || []) as Tables<'employees'>[];
+            const s = scoreResults[i].data?.[0];
+            if (s) scrMap[e.id] = s as Tables<'compliance_scores'>;
+          });
           setEmployeesByEntity(empMap);
+          setScoresByEntity(scrMap);
+          if (rulesResult.data) setComplianceRules(rulesResult.data as Tables<'compliance_rules'>[]);
         }
       } finally {
         setLoading(false);
