@@ -35,20 +35,8 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    try {
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
-      });
-      if (error) {
-        toast.error(error.message || 'Failed to sign in with Google');
-      }
-    } catch (err) {
-      toast.error('Failed to sign in with Google');
-    } finally {
-      setGoogleLoading(false);
-    }
+  const handleGoogleSignIn = () => {
+    toast.info('Coming soon! Google sign-in will be available shortly.');
   };
 
   const handleDemoMode = () => {
