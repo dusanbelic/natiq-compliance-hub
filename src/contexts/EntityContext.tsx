@@ -158,6 +158,7 @@ export function EntityProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!isDemoMode);
   const [employeesByEntity, setEmployeesByEntity] = useState<Record<string, Tables<'employees'>[]>>({});
   const [scoresByEntity, setScoresByEntity] = useState<Record<string, Tables<'compliance_scores'>>>({});
+  const [complianceRules, setComplianceRules] = useState<Tables<'compliance_rules'>[]>([]);
 
   // Fetch entities and employees from Supabase
   useEffect(() => {
