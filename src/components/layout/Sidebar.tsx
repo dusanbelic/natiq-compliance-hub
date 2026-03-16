@@ -193,27 +193,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         </button>
 
         {/* User Profile */}
-        <div
-          className={cn(
-            'flex items-center gap-3 p-2 rounded-lg bg-sidebar-accent/50',
-            collapsed && 'justify-center'
-          )}
-        >
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-            <span className="text-primary-foreground text-sm font-medium">
-              {profile?.full_name?.charAt(0) || 'U'}
-            </span>
-          </div>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{profile?.full_name || 'User'}</p>
-              <p className="text-xs opacity-60 capitalize">{profile?.role?.replace('_', ' ') || 'Manager'}</p>
-              {isDemoMode && (
-                <span className="text-xs text-primary">(Demo Mode)</span>
-              )}
-            </div>
-          )}
-        </div>
+        <UserProfileBadge collapsed={collapsed} profile={profile} isDemoMode={isDemoMode} />
 
         {/* Sign Out */}
         <Button

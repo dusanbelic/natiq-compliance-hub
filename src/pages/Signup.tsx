@@ -139,8 +139,12 @@ export default function Signup() {
           </div>
 
           <div className="text-center lg:text-left">
-            <h2 className="font-sora font-bold text-2xl text-foreground">Start your free trial</h2>
-            <p className="text-muted-foreground mt-1">No credit card required. 14 days free.</p>
+            <h2 className="font-sora font-bold text-2xl text-foreground">
+              {isPartner ? 'Create your Design Partner account' : 'Start your free trial'}
+            </h2>
+            <p className="text-muted-foreground mt-1">
+              {isPartner ? '12 months free. Direct founder access.' : 'No credit card required. 14 days free.'}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

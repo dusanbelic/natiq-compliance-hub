@@ -491,6 +491,32 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Design Partner Welcome Banner */}
+      {isPartner && !bannerDismissed && (
+        <Card className="shadow-card border-amber bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎉</span>
+              <div>
+                <p className="font-sora font-bold text-sm">Welcome, Design Partner!</p>
+                <p className="text-xs text-muted-foreground">Your 12-month free access is active. Your feedback shapes this product.</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => { localStorage.setItem('partner_banner_dismissed', 'true'); setBannerDismissed(true); }}>
+              Dismiss
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Share Modal */}
+      <ShareComplianceModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        entity={selectedEntity}
+        score={score}
+      />
     </div>
   );
 }
