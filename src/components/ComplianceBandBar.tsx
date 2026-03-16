@@ -31,7 +31,7 @@ export function ComplianceBandBar({
   return (
     <div className={cn('w-full', className)}>
       {/* Labels */}
-      <div className="flex justify-between text-xs text-muted-foreground mb-1">
+      <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground mb-1">
         <span>0%</span>
         <span>{yellowMin.toFixed(0)}%</span>
         <span>{greenMin.toFixed(0)}%</span>
