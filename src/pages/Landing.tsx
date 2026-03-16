@@ -393,7 +393,7 @@ export default function Landing() {
               <p className="text-sm" style={{ color: '#94A3B8' }}>Nationalization compliance, simplified.</p>
               <p className="text-xs mt-2" style={{ color: '#64748B' }}>© 2025 NatIQ. All rights reserved.</p>
             </div>
-            <div className="flex gap-6">
+            <div className="flex flex-wrap gap-4 sm:gap-6">
               <Link to="/dashboard" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Dashboard</Link>
               <Link to="/login" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Sign In</Link>
               <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Apply for Access</button>
