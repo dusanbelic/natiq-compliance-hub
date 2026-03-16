@@ -3,7 +3,6 @@ import { Server, Globe, Star } from 'lucide-react';
 const AVATAR_INITIALS = ['AH', 'SM', 'KR', 'FJ', 'NB'];
 
 const TRUST_BADGES = [
-  { icon: Server, label: 'Data hosted in AWS Bahrain' },
   { icon: Globe, label: 'Arabic RTL Support' },
   { icon: Star, label: 'Vision 2030 Aligned' },
 ];
