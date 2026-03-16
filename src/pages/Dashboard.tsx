@@ -102,6 +102,16 @@ export default function Dashboard() {
       : null;
 
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalculate = () => {
+    setRecalculating(true);
+    refreshEntityData();
+    setTimeout(() => {
+      setRecalculating(false);
+      toast.success('Compliance scores recalculated');
+    }, 800);
+  };
   const trendIcon = score.trend >= 0 ? TrendingUp : TrendingDown;
   const trendColor = score.trend >= 0 ? 'text-status-green' : 'text-status-red';
   const isCompliant = score.status === 'COMPLIANT';
