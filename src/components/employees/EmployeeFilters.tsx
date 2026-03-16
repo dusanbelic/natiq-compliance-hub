@@ -1,6 +1,8 @@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface EmployeeFiltersProps {
   search: string;
@@ -21,8 +23,10 @@ export function EmployeeFilters({
   onDeptFilterChange,
   departments,
 }: EmployeeFiltersProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="flex gap-3 flex-wrap">
+    <div className="flex gap-3 flex-wrap items-center">
       <div className="relative max-w-sm flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
@@ -47,6 +51,9 @@ export function EmployeeFilters({
           {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
         </SelectContent>
       </Select>
+      <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => navigate('/settings?tab=company')}>
+        <Settings className="w-4 h-4 mr-1" />Manage Departments
+      </Button>
     </div>
   );
 }
