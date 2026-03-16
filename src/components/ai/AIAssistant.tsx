@@ -218,7 +218,7 @@ export function AIAssistant() {
     return (
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-50"
+        className="fixed bottom-20 right-4 lg:bottom-6 lg:right-6 w-14 h-14 rounded-full shadow-lg z-50"
         size="icon"
       >
         <MessageCircle className="w-6 h-6" />
