@@ -68,12 +68,12 @@ export default function Login() {
 
         <div className="relative z-10">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-16">
+          <Link to="/" className="flex items-center gap-3 mb-16">
             <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-jetbrains font-bold text-xl">N</span>
             </div>
             <span className="text-white font-sora font-bold text-4xl tracking-tight">NatIQ</span>
-          </div>
+          </Link>
 
           {/* Tagline */}
           <h1 className="text-white font-sora font-bold text-5xl leading-tight mb-6">
