@@ -19,20 +19,9 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      toast.error(error.message);
-      setLoading(false);
-    } else {
-      toast.success('Welcome back!');
-      setLoading(false);
-      navigate('/dashboard');
-    }
+    toast.info('Coming soon! Email sign-in will be available shortly.');
   };
 
   const handleGoogleSignIn = () => {
