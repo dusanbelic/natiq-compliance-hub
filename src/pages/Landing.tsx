@@ -8,10 +8,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ComplianceRing } from '@/components/ComplianceRing';
-import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowDown, Zap, Gift, Phone, Trophy, Check, Loader2, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { TractionTicker } from '@/components/landing/TractionTicker';
+import { TeamSection } from '@/components/landing/TeamSection';
+import { SocialProofBar } from '@/components/landing/SocialProofBar';
+import { WhyNatIQSection } from '@/components/landing/WhyNatIQSection';
 
 const applicationSchema = z.object({
   full_name: z.string().trim().min(1, 'Name is required').max(100),
@@ -90,6 +94,7 @@ export default function Landing() {
           </div>
           <div className="hidden md:flex items-center gap-8">
             <button onClick={() => productRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Product</button>
+            <Link to="/resources" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Resources</Link>
             <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm text-muted-foreground hover:text-foreground transition-colors">Design Partners</button>
           </div>
           <div className="flex items-center gap-3">
@@ -121,6 +126,12 @@ export default function Landing() {
                   See how it works <ArrowDown className="w-4 h-4" />
                 </button>
               </div>
+              {/* View Live Demo */}
+              <div className="mt-4">
+                <Button variant="outline" size="lg" className="rounded-full border-white/40 text-white hover:bg-white/10 hover:text-white" asChild>
+                  <Link to="/demo"><Play className="w-4 h-4 mr-2" /> View Live Demo</Link>
+                </Button>
+              </div>
               <p className="text-sm mt-4" style={{ color: '#94A3B8' }}>
                 Currently accepting 20 design partners · Free for 12 months · No payment required
               </p>
@@ -151,6 +162,9 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* Traction Ticker */}
+      <TractionTicker />
 
       {/* Problem */}
       <section className="py-20 bg-card">
@@ -223,8 +237,14 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Team Section */}
+      <TeamSection />
+
+      {/* Why NatIQ */}
+      <WhyNatIQSection />
+
       {/* Design Partner Section */}
-      <section ref={partnerRef} className="py-20" style={{ background: '#1B3A5C' }}>
+      <section ref={partnerRef} id="apply" className="py-20" style={{ background: '#1B3A5C' }}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="font-sora font-bold text-3xl sm:text-[40px] text-white mb-4">Join our Design Partner Programme</h2>
           <p className="text-lg mb-12" style={{ color: '#CBD5E1' }}>
@@ -340,6 +360,9 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Social Proof Bar */}
+      <SocialProofBar />
+
       {/* Footer */}
       <footer className="py-12" style={{ background: '#0F172A' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -358,6 +381,7 @@ export default function Landing() {
               <Link to="/dashboard" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Dashboard</Link>
               <Link to="/login" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Sign In</Link>
               <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Apply for Access</button>
+              <Link to="/resources" className="text-sm hover:text-white" style={{ color: '#94A3B8' }}>Resources</Link>
             </div>
             <div>
               <p className="text-sm font-medium text-white mb-1">Get in touch</p>

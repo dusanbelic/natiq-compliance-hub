@@ -29,13 +29,17 @@ const Settings = lazy(() => import('@/pages/Settings'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const AdminApplications = lazy(() => import('@/pages/AdminApplications'));
+const AdminMetrics = lazy(() => import('@/pages/AdminMetrics'));
+const Demo = lazy(() => import('@/pages/Demo'));
+const Resources = lazy(() => import('@/pages/Resources'));
+const NitaqatArticle = lazy(() => import('@/pages/NitaqatArticle'));
 const AIAssistant = lazy(() => import('@/components/ai/AIAssistant').then(m => ({ default: m.AIAssistant })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 min
-      gcTime: 10 * 60 * 1000, // 10 min
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
     },
   },
 });
@@ -50,7 +54,6 @@ function PageLoader() {
   );
 }
 
-// Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading, isDemoMode } = useAuth();
 
@@ -74,7 +77,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Onboarding guard — redirects to /onboarding if user has no entities
 function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { user, isDemoMode } = useAuth();
   const [checked, setChecked] = useState(false);
@@ -100,7 +102,6 @@ function OnboardingGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// App Routes Component
 function AppRoutes() {
   const { user, isDemoMode } = useAuth();
 
@@ -120,6 +121,11 @@ function AppRoutes() {
           user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Signup />
         } />
         <Route path="/reset-password" element={<ResetPassword />} />
+
+        {/* Public routes */}
+        <Route path="/demo" element={<Demo />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/resources/how-nitaqat-works" element={<NitaqatArticle />} />
 
         {/* Protected routes with app shell */}
         <Route element={
@@ -152,6 +158,7 @@ function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin/applications" element={<AdminApplications />} />
+        <Route path="/admin/metrics" element={<AdminMetrics />} />
 
         {/* Catch all */}
         <Route path="*" element={<NotFound />} />

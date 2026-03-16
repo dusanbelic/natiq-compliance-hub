@@ -11,6 +11,8 @@ import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { NotificationDrawer } from './NotificationDrawer';
 import { MobileNav } from './MobileNav';
+import { DemoBanner } from './DemoBanner';
+import { DemoFeedbackButton } from './DemoFeedbackButton';
 import { AlertTriangle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
