@@ -99,10 +99,25 @@ export default function Landing() {
             <button onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="text-base text-muted-foreground hover:text-foreground transition-colors">Design Partners</button>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild><Link to="/login">Sign In</Link></Button>
-            <Button size="sm" onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })}>Apply for Early Access</Button>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex"><Link to="/login">Sign In</Link></Button>
+            <Button size="sm" onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })} className="hidden sm:inline-flex">Apply for Early Access</Button>
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
         </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t bg-card px-4 py-3 space-y-2">
+            <button onClick={() => { productRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-foreground">Product</button>
+            <Link to="/resources" className="block w-full py-2 text-sm text-muted-foreground hover:text-foreground" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
+            <button onClick={() => { partnerRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="block w-full text-left py-2 text-sm text-muted-foreground hover:text-foreground">Design Partners</button>
+            <div className="flex gap-2 pt-2 border-t">
+              <Button variant="ghost" size="sm" asChild className="flex-1"><Link to="/login">Sign In</Link></Button>
+              <Button size="sm" className="flex-1" onClick={() => { partnerRef.current?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}>Apply</Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Hero */}
