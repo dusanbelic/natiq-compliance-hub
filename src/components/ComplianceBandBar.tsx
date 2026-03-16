@@ -72,7 +72,7 @@ export function ComplianceBandBar({
       </div>
       
       {/* Zone labels */}
-      <div className="flex justify-between text-xs mt-1">
+      <div className="flex justify-between text-[10px] sm:text-xs mt-1">
         <span className="text-status-red font-medium">Red</span>
         <span className="text-amber font-medium">Yellow</span>
         <span className="text-status-green font-medium">Green</span>
