@@ -42,7 +42,7 @@ interface EmployeeFormDialogProps {
   salaryBands?: string[];
 }
 
-export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [] }: EmployeeFormDialogProps) {
+export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [], salaryBands = [] }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
   const [nationalityOpen, setNationalityOpen] = useState(false);
 
