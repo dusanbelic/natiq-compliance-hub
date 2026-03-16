@@ -55,6 +55,30 @@ serve(async (req) => {
       });
     }
 
+    if (action === "list_feedback") {
+      const { data, error } = await supabase
+        .from("demo_feedback")
+        .select("*")
+        .order("submitted_at", { ascending: false });
+
+      if (error) throw error;
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "list_subscribers") {
+      const { data, error } = await supabase
+        .from("resource_subscribers")
+        .select("*")
+        .order("subscribed_at", { ascending: false });
+
+      if (error) throw error;
+      return new Response(JSON.stringify({ data }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({ error: "Unknown action" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
