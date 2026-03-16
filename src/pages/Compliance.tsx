@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { CardSkeleton, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { toast } from 'sonner';
+import { ComplianceDisclaimer, QatarRegulationNotice } from '@/components/ComplianceDisclaimer';
 
 export default function Compliance() {
   const { selectedEntity, dashboardData, loading, refreshEntityData } = useEntity();
