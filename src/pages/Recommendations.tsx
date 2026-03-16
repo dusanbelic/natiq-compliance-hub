@@ -160,6 +160,7 @@ export default function Recommendations() {
                         <PriorityBadge priority={rec.priority} />
                         {status === 'DONE' && <span className="text-xs text-status-green font-medium">✓ Done</span>}
                         {status === 'IN_PROGRESS' && <span className="text-xs text-primary font-medium">⏳ In Progress</span>}
+
                       </div>
                       <h3 className={`font-semibold ${status === 'DONE' ? 'line-through' : ''}`}>{rec.title}</h3>
                       <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
