@@ -16,7 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [forgotOpen, setForgotOpen] = useState(false);
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
