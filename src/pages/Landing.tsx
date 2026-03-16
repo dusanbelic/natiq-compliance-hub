@@ -41,6 +41,7 @@ export default function Landing() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [form, setForm] = useState({
     full_name: '', work_email: '', company_name: '', job_title: '',
     countries: [] as string[], headcount_band: '', biggest_challenge: '', referral_source: ''
