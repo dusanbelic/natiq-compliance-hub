@@ -381,19 +381,29 @@ export function useUpdateUserProfile() {
 // ─── Team Members ───────────────────────────────────────────────────────────
 
 export function useTeamMembers() {
-  const { isDemoMode } = useAuth();
+  const { isDemoMode, user } = useAuth();
 
   return useQuery({
-    queryKey: ['team_members'],
+    queryKey: ['team_members', user?.id],
     queryFn: async () => {
+      // First get current user's company_id
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('company_id')
+        .eq('id', user!.id)
+        .single();
+
+      if (!profile?.company_id) return [];
+
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, full_name, company_id, created_at')
+        .eq('company_id', profile.company_id)
         .order('created_at');
       if (error) throw error;
       return data as Array<{ id: string; full_name: string | null; company_id: string | null; created_at: string | null }>;
     },
-    enabled: !isDemoMode,
+    enabled: !isDemoMode && !!user?.id,
   });
 }
 
