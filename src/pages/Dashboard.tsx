@@ -192,10 +192,17 @@ export default function Dashboard() {
               <CardTitle className="font-sora text-lg">
                 {t('Overall Compliance Status')} — {COUNTRY_FLAGS[selectedEntity.country]} {selectedEntity.name}
               </CardTitle>
-              <Button variant="outline" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                {t('Recalculate')}
-              </Button>
+              <div className="flex items-center gap-2">
+                {isCompliant && (
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShareModalOpen(true)} title="Share achievement">
+                    <Share2 className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button variant="outline" size="sm">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {t('Recalculate')}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row items-center gap-8">
