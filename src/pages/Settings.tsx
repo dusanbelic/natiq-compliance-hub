@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, UserPlus, CreditCard, Download, Check, AlertTriangle, Loader2, Building2 } from 'lucide-react';
 import { DepartmentManager } from '@/components/settings/DepartmentManager';
+import { SalaryBandManager } from '@/components/settings/SalaryBandManager';
 import { InviteTeamDialog } from '@/components/settings/InviteTeamDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -216,6 +217,7 @@ export default function Settings() {
             </CardContent>
           </Card>
           <DepartmentManager scrollRef={deptRef} />
+          <SalaryBandManager />
         </TabsContent>
 
         {/* My Profile & Notifications */}

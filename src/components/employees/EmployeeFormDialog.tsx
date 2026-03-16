@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Switch } from '@/components/ui/switch';
-import { getNationalityFlag, SALARY_BANDS } from '@/lib/mockData';
+import { getNationalityFlag } from '@/lib/mockData';
 import { NATIONALITIES } from '@/lib/nationalities';
 import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -39,9 +39,10 @@ interface EmployeeFormDialogProps {
   employee?: Employee | null;
   onSave: (data: FormData) => void;
   departments?: string[];
+  salaryBands?: string[];
 }
 
-export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [] }: EmployeeFormDialogProps) {
+export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [], salaryBands = [] }: EmployeeFormDialogProps) {
   const isEdit = !!employee;
   const [nationalityOpen, setNationalityOpen] = useState(false);
 
@@ -156,7 +157,7 @@ export function EmployeeFormDialog({ open, onClose, employee, onSave, department
               <Select value={watch('salary_band') || ''} onValueChange={(v) => setValue('salary_band', v)}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
-                  {SALARY_BANDS.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                  {salaryBands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

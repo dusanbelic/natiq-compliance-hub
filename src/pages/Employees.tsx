@@ -16,7 +16,8 @@ import { EmptyState, TableSkeleton } from '@/components/ui/LoadingSkeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { exportEmployeesCSV } from '@/lib/export-utils';
-import { useDeleteEmployee, useUpdateEmployee, useCompany, useDepartments } from '@/hooks/use-supabase-data';
+import { useDeleteEmployee, useUpdateEmployee, useCompany, useDepartments, useSalaryBands } from '@/hooks/use-supabase-data';
+import { SALARY_BANDS } from '@/lib/mockData';
 import type { Employee } from '@/types/database';
 
 export default function Employees() {
@@ -112,6 +113,11 @@ export default function Employees() {
   const departments = isDemoMode
     ? [...new Set(employees.map(e => e.department).filter(Boolean))] as string[]
     : (dbDepartments ?? []).map(d => d.name);
+
+  const { data: dbSalaryBands } = useSalaryBands(company?.id ?? '');
+  const salaryBands = isDemoMode
+    ? SALARY_BANDS
+    : (dbSalaryBands ?? []).map(b => b.name);
 
   const filtered = useMemo(() => {
     const list = employees.filter((e) => {
@@ -263,7 +269,7 @@ export default function Employees() {
 
       <CSVImportDialog open={csvOpen} onClose={() => setCsvOpen(false)} onImport={(data) => { toast.success(`${data.length} employees imported`); refreshEntityData(); }} />
       <EmployeeDrawer employee={drawerEmployee} open={!!drawerEmployee} onClose={() => setDrawerEmployee(null)} onEdit={handleEditFromDrawer} />
-      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} departments={departments} />
+      <EmployeeFormDialog key={editEmployee?.id || 'new'} open={formOpen} onClose={() => { setFormOpen(false); refreshEntityData(); }} employee={editEmployee} onSave={() => { refreshEntityData(); }} departments={departments} salaryBands={salaryBands} />
     </div>
   );
 }

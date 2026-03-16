@@ -536,3 +536,98 @@ export function useDeleteDepartment() {
     },
   });
 }
+
+// ─── Salary Bands ──────────────────────────────────────────────────────────────
+
+export function useSalaryBands(companyId: string) {
+  const { isDemoMode } = useAuth();
+  return useQuery({
+    queryKey: ['salary_bands', companyId],
+    queryFn: async () => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/salary_bands?select=*&company_id=eq.${companyId}&order=name.asc`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to load salary bands');
+      return (await res.json()) as { id: string; name: string; company_id: string; created_at: string }[];
+    },
+    enabled: !isDemoMode && !!companyId,
+  });
+}
+
+export function useAddSalaryBand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (band: { name: string; company_id: string }) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/salary_bands`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify(band),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        if (body.includes('duplicate')) throw new Error('duplicate');
+        throw new Error('Failed to add salary band');
+      }
+      return (await res.json())[0];
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['salary_bands', vars.company_id] });
+    },
+  });
+}
+
+export function useUpdateSalaryBand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/salary_bands?id=eq.${id}`;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        if (body.includes('duplicate')) throw new Error('duplicate');
+        throw new Error('Failed to update salary band');
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salary_bands'] });
+    },
+  });
+}
+
+export function useDeleteSalaryBand() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/salary_bands?id=eq.${id}`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      if (!res.ok) throw new Error('Failed to delete salary band');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salary_bands'] });
+    },
+  });
+}
