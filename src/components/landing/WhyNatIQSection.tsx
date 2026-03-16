@@ -33,21 +33,16 @@ export function WhyNatIQSection() {
           Domain expertise meets modern software
         </h2>
 
-        <div className="grid lg:grid-cols-2 gap-10">
-          {/* Left: Expertise */}
-          <div className="space-y-4">
-            <h3 className="font-sora font-semibold text-lg mb-4" style={{ color: '#1B3A5C' }}>Domain Expertise</h3>
-            {EXPERTISE_CARDS.map((card) => (
-              <div
-                key={card.title}
-                className="bg-card rounded-r-lg p-5 border-l-[3px] border-primary"
-              >
-                <h4 className="font-sora font-semibold text-sm mb-2">{card.title}</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
-              </div>
-            ))}
-          </div>
-
+        <div className="grid md:grid-cols-3 gap-6">
+          {EXPERTISE_CARDS.map((card) => (
+            <div
+              key={card.title}
+              className="bg-card rounded-r-lg p-5 border-l-[3px] border-primary"
+            >
+              <h4 className="font-sora font-semibold text-sm mb-2">{card.title}</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">{card.body}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
