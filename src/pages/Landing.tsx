@@ -259,7 +259,7 @@ export default function Landing() {
             <div key={b.label} className="text-center">
                 <b.icon className="w-8 h-8 text-white mx-auto mb-3" />
                 <h3 className="font-bold text-white mb-1">{b.label}</h3>
-                <p className="text-sm" style={{ color: '#CBD5E1' }}>{b.desc}</p>
+                <p className="text-base" style={{ color: '#CBD5E1' }}>{b.desc}</p>
               </div>
             )}
           </div>
