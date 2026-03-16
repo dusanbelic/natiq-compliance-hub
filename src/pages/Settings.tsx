@@ -36,7 +36,15 @@ export default function Settings() {
   const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const activeTab = searchParams.get('tab') || 'profile';
+  const deptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (location.hash === '#departments') {
+      setTimeout(() => deptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+    }
+  }, [location.hash, activeTab]);
 
   // Live data hooks
   const { data: company, isLoading: companyLoading } = useCompany();
