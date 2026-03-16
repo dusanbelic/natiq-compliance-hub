@@ -66,7 +66,9 @@ export function AppShell() {
 
   return (
     <div className={cn('flex flex-col h-screen overflow-hidden', isRTL && 'flex-row-reverse')}>
-      {/* Alert Banner for At-Risk Entities */}
+      {/* Demo Banner */}
+      {isDemoMode && <DemoBanner />}
+
       {atRiskEntities.map((entity) => {
         const data = MOCK_DASHBOARD_DATA[entity.id];
         if (!data) return null;
