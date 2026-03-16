@@ -53,7 +53,7 @@ import type { ComplianceStatus } from '@/types/database';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { selectedEntity, dashboardData, entities, loading, allScores } = useEntity();
+  const { selectedEntity, dashboardData, entities, loading, allScores, refreshEntityData } = useEntity();
   const { isDemoMode, profile } = useAuth();
   const { t } = useLanguage();
   const { score, compliance_history, department_breakdown } = dashboardData;
