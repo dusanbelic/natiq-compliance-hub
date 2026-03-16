@@ -25,15 +25,15 @@ const applicationSchema = z.object({
   countries: z.array(z.string()).min(1, 'Select at least one country'),
   headcount_band: z.string().optional(),
   biggest_challenge: z.string().max(1000).optional(),
-  referral_source: z.string().optional(),
+  referral_source: z.string().optional()
 });
 
 const COUNTRIES_LIST = [
-  { code: 'SA', flag: '🇸🇦', name: 'Saudi Arabia' },
-  { code: 'AE', flag: '🇦🇪', name: 'UAE' },
-  { code: 'QA', flag: '🇶🇦', name: 'Qatar' },
-  { code: 'OM', flag: '🇴🇲', name: 'Oman' },
-];
+{ code: 'SA', flag: '🇸🇦', name: 'Saudi Arabia' },
+{ code: 'AE', flag: '🇦🇪', name: 'UAE' },
+{ code: 'QA', flag: '🇶🇦', name: 'Qatar' },
+{ code: 'OM', flag: '🇴🇲', name: 'Oman' }];
+
 
 export default function Landing() {
   const productRef = useRef<HTMLDivElement>(null);
@@ -43,13 +43,13 @@ export default function Landing() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [form, setForm] = useState({
     full_name: '', work_email: '', company_name: '', job_title: '',
-    countries: [] as string[], headcount_band: '', biggest_challenge: '', referral_source: '',
+    countries: [] as string[], headcount_band: '', biggest_challenge: '', referral_source: ''
   });
 
   const toggleCountry = (code: string) => {
-    setForm(prev => ({
+    setForm((prev) => ({
       ...prev,
-      countries: prev.countries.includes(code) ? prev.countries.filter(c => c !== code) : [...prev.countries, code],
+      countries: prev.countries.includes(code) ? prev.countries.filter((c) => c !== code) : [...prev.countries, code]
     }));
   };
 
@@ -58,7 +58,7 @@ export default function Landing() {
     const result = applicationSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => { fieldErrors[err.path[0] as string] = err.message; });
+      result.error.errors.forEach((err) => {fieldErrors[err.path[0] as string] = err.message;});
       setErrors(fieldErrors);
       return;
     }
@@ -69,13 +69,13 @@ export default function Landing() {
         full_name: form.full_name, work_email: form.work_email, company_name: form.company_name,
         job_title: form.job_title || null, countries: form.countries,
         headcount_band: form.headcount_band || null, biggest_challenge: form.biggest_challenge || null,
-        referral_source: form.referral_source || null,
+        referral_source: form.referral_source || null
       });
       if (error) throw error;
       setSubmitted(true);
     } catch (err: any) {
-      if (err?.message?.includes('duplicate')) toast.error('This email has already applied.');
-      else toast.error('Something went wrong, please try again.');
+      if (err?.message?.includes('duplicate')) toast.error('This email has already applied.');else
+      toast.error('Something went wrong, please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -175,18 +175,18 @@ export default function Landing() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { emoji: '📋', title: 'Quarterly rule changes you miss', desc: 'Nitaqat bands shift. Targets increase annually. Most companies find out when the fine arrives.' },
-              { emoji: '⏰', title: 'Hours lost every month', desc: 'Manual headcount audits, government portal logins, cross-referencing contracts. All manual. All error-prone.' },
-              { emoji: '💰', title: "Fines you didn't see coming", desc: 'SAR 10,000 per month per quota gap in Saudi. AED 96,000 per year per unfilled position in UAE.' },
-            ].map(p => (
-              <Card key={p.title} className="shadow-card text-left">
+            { emoji: '📋', title: 'Quarterly rule changes you miss', desc: 'Nitaqat bands shift. Targets increase annually. Most companies find out when the fine arrives.' },
+            { emoji: '⏰', title: 'Hours lost every month', desc: 'Manual headcount audits, government portal logins, cross-referencing contracts. All manual. All error-prone.' },
+            { emoji: '💰', title: "Fines you didn't see coming", desc: 'SAR 10,000 per month per quota gap in Saudi. AED 96,000 per year per unfilled position in UAE.' }].
+            map((p) =>
+            <Card key={p.title} className="shadow-card text-left">
                 <CardContent className="p-6">
                   <span className="text-3xl mb-3 block">{p.emoji}</span>
                   <h3 className="font-sora font-semibold mb-2">{p.title}</h3>
                   <p className="text-sm text-muted-foreground">{p.desc}</p>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -198,17 +198,17 @@ export default function Landing() {
           <h2 className="font-sora font-bold text-3xl mb-12">From spreadsheet chaos to clarity in minutes</h2>
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { step: '1', title: 'Import', desc: 'Upload a CSV or connect your HRMS. Compliance score calculated instantly.' },
-              { step: '2', title: 'Monitor', desc: 'Live dashboard across every GCC country, entity, and regulatory programme.' },
-              { step: '3', title: 'Act', desc: 'AI tells you what to hire, reclassify, or fix, ranked by compliance impact.' },
-            ].map((s, i) => (
-              <div key={s.step} className="flex flex-col items-center">
+            { step: '1', title: 'Import', desc: 'Upload a CSV or connect your HRMS. Compliance score calculated instantly.' },
+            { step: '2', title: 'Monitor', desc: 'Live dashboard across every GCC country, entity, and regulatory programme.' },
+            { step: '3', title: 'Act', desc: 'AI tells you what to hire, reclassify, or fix, ranked by compliance impact.' }].
+            map((s, i) =>
+            <div key={s.step} className="flex flex-col items-center">
                 <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-jetbrains font-bold text-xl mb-4">{s.step}</div>
                 <h3 className="font-sora font-semibold text-lg mb-2">{s.title}</h3>
-                <p className="text-sm text-muted-foreground">{s.desc}</p>
+                <p className="text-muted-foreground text-base">{s.desc}</p>
                 {i < 2 && <ArrowRight className="w-5 h-5 text-primary mt-4 hidden md:block rotate-0" />}
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -219,12 +219,12 @@ export default function Landing() {
           <h2 className="font-sora font-bold text-3xl mb-12">All four GCC nationalization programs, one platform</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { flag: '🇸🇦', country: 'Saudi Arabia', program: 'Nitaqat / Saudisation', stat: 'Fines from SAR 10,000/month' },
-              { flag: '🇦🇪', country: 'UAE', program: 'Emiratisation (Nafis)', stat: 'Target: 10% for 50+ employee companies' },
-              { flag: '🇶🇦', country: 'Qatar', program: 'Qatarisation', stat: '20-50% target by sector' },
-              { flag: '🇴🇲', country: 'Oman', program: 'Omanisation', stat: '5-75% sector-dependent' },
-            ].map(c => (
-              <Card key={c.country} className="shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-default">
+            { flag: '🇸🇦', country: 'Saudi Arabia', program: 'Nitaqat / Saudisation', stat: 'Fines from SAR 10,000/month' },
+            { flag: '🇦🇪', country: 'UAE', program: 'Emiratisation (Nafis)', stat: 'Target: 10% for 50+ employee companies' },
+            { flag: '🇶🇦', country: 'Qatar', program: 'Qatarisation', stat: '20-50% target by sector' },
+            { flag: '🇴🇲', country: 'Oman', program: 'Omanisation', stat: '5-75% sector-dependent' }].
+            map((c) =>
+            <Card key={c.country} className="shadow-card hover:-translate-y-1 hover:shadow-elevated transition-all cursor-default">
                 <CardContent className="p-6 text-center">
                   <span className="text-4xl mb-3 block">{c.flag}</span>
                   <h3 className="font-sora font-bold text-xl">{c.country}</h3>
@@ -232,7 +232,7 @@ export default function Landing() {
                   <p className="text-sm text-muted-foreground mt-2">{c.stat}</p>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -252,21 +252,21 @@ export default function Landing() {
           </p>
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {[
-              { icon: Gift, label: 'Free for 12 months', desc: 'Full platform access from day one, no billing ever' },
-              { icon: Phone, label: 'Direct founder access', desc: 'Weekly calls while we build together' },
-              { icon: Trophy, label: 'Founding customer status', desc: 'Locked-in pricing forever after public launch' },
-            ].map(b => (
-              <div key={b.label} className="text-center">
+            { icon: Gift, label: 'Free for 12 months', desc: 'Full platform access from day one, no billing ever' },
+            { icon: Phone, label: 'Direct founder access', desc: 'Weekly calls while we build together' },
+            { icon: Trophy, label: 'Founding customer status', desc: 'Locked-in pricing forever after public launch' }].
+            map((b) =>
+            <div key={b.label} className="text-center">
                 <b.icon className="w-8 h-8 text-white mx-auto mb-3" />
                 <h3 className="font-bold text-white mb-1">{b.label}</h3>
                 <p className="text-sm" style={{ color: '#CBD5E1' }}>{b.desc}</p>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Form */}
-          {submitted ? (
-            <Card className="max-w-xl mx-auto rounded-2xl">
+          {submitted ?
+          <Card className="max-w-xl mx-auto rounded-2xl">
               <CardContent className="p-8 text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-primary mx-auto flex items-center justify-center">
                   <Check className="w-8 h-8 text-primary-foreground" />
@@ -279,50 +279,50 @@ export default function Landing() {
                       Share on LinkedIn
                     </a>
                   </Button>
-                  <Button variant="outline" onClick={() => { navigator.clipboard.writeText('https://natiq.io'); toast.success('Copied!'); }}>
+                  <Button variant="outline" onClick={() => {navigator.clipboard.writeText('https://natiq.io');toast.success('Copied!');}}>
                     Copy Link
                   </Button>
                 </div>
               </CardContent>
-            </Card>
-          ) : (
-            <Card className="max-w-xl mx-auto rounded-2xl">
+            </Card> :
+
+          <Card className="max-w-xl mx-auto rounded-2xl">
               <CardContent className="p-6 sm:p-8">
                 <form onSubmit={handleSubmit} className="space-y-4 text-left">
                   <div>
                     <Label>Full Name *</Label>
-                    <Input value={form.full_name} onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))} onBlur={() => { if (!form.full_name) setErrors(p => ({ ...p, full_name: 'Required' })); else setErrors(p => { const n = { ...p }; delete n.full_name; return n; }); }} />
+                    <Input value={form.full_name} onChange={(e) => setForm((p) => ({ ...p, full_name: e.target.value }))} onBlur={() => {if (!form.full_name) setErrors((p) => ({ ...p, full_name: 'Required' }));else setErrors((p) => {const n = { ...p };delete n.full_name;return n;});}} />
                     {errors.full_name && <p className="text-xs text-destructive mt-1">{errors.full_name}</p>}
                   </div>
                   <div>
                     <Label>Work Email *</Label>
-                    <Input type="email" value={form.work_email} onChange={e => setForm(p => ({ ...p, work_email: e.target.value }))} />
+                    <Input type="email" value={form.work_email} onChange={(e) => setForm((p) => ({ ...p, work_email: e.target.value }))} />
                     {errors.work_email && <p className="text-xs text-destructive mt-1">{errors.work_email}</p>}
                   </div>
                   <div>
                     <Label>Company Name *</Label>
-                    <Input value={form.company_name} onChange={e => setForm(p => ({ ...p, company_name: e.target.value }))} />
+                    <Input value={form.company_name} onChange={(e) => setForm((p) => ({ ...p, company_name: e.target.value }))} />
                     {errors.company_name && <p className="text-xs text-destructive mt-1">{errors.company_name}</p>}
                   </div>
                   <div>
                     <Label>Job Title</Label>
-                    <Input value={form.job_title} onChange={e => setForm(p => ({ ...p, job_title: e.target.value }))} />
+                    <Input value={form.job_title} onChange={(e) => setForm((p) => ({ ...p, job_title: e.target.value }))} />
                   </div>
                   <div>
                     <Label>Countries of Operation *</Label>
                     <div className="flex gap-3 mt-2 flex-wrap">
-                      {COUNTRIES_LIST.map(c => (
-                        <label key={c.code} className="flex items-center gap-2 p-2 rounded-lg border cursor-pointer hover:bg-muted">
+                      {COUNTRIES_LIST.map((c) =>
+                    <label key={c.code} className="flex items-center gap-2 p-2 rounded-lg border cursor-pointer hover:bg-muted">
                           <Checkbox checked={form.countries.includes(c.code)} onCheckedChange={() => toggleCountry(c.code)} />
                           <span>{c.flag}</span><span className="text-sm">{c.name}</span>
                         </label>
-                      ))}
+                    )}
                     </div>
                     {errors.countries && <p className="text-xs text-destructive mt-1">{errors.countries}</p>}
                   </div>
                   <div>
                     <Label>Approximate headcount</Label>
-                    <Select value={form.headcount_band} onValueChange={v => setForm(p => ({ ...p, headcount_band: v }))}>
+                    <Select value={form.headcount_band} onValueChange={(v) => setForm((p) => ({ ...p, headcount_band: v }))}>
                       <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="under_50">Under 50</SelectItem>
@@ -334,11 +334,11 @@ export default function Landing() {
                   </div>
                   <div>
                     <Label>Biggest compliance challenge right now</Label>
-                    <Textarea value={form.biggest_challenge} onChange={e => setForm(p => ({ ...p, biggest_challenge: e.target.value }))} placeholder="e.g. We track Nitaqat on spreadsheets and always find out about quota changes too late" rows={3} />
+                    <Textarea value={form.biggest_challenge} onChange={(e) => setForm((p) => ({ ...p, biggest_challenge: e.target.value }))} placeholder="e.g. We track Nitaqat on spreadsheets and always find out about quota changes too late" rows={3} />
                   </div>
                   <div>
                     <Label>How did you hear about NatIQ?</Label>
-                    <Select value={form.referral_source} onValueChange={v => setForm(p => ({ ...p, referral_source: v }))}>
+                    <Select value={form.referral_source} onValueChange={(v) => setForm((p) => ({ ...p, referral_source: v }))}>
                       <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="linkedin">LinkedIn</SelectItem>
@@ -356,7 +356,7 @@ export default function Landing() {
                 </form>
               </CardContent>
             </Card>
-          )}
+          }
         </div>
       </section>
 
@@ -390,6 +390,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 }
