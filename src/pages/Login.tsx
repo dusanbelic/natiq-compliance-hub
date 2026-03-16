@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Check } from 'lucide-react';
-import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 import { lovable } from '@/integrations/lovable/index';
 
 export default function Login() {
