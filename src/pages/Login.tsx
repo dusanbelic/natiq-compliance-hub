@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Check } from 'lucide-react';
-import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 import { lovable } from '@/integrations/lovable/index';
 
 export default function Login() {
@@ -17,7 +16,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [forgotOpen, setForgotOpen] = useState(false);
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +115,7 @@ export default function Login() {
                 <Label htmlFor="password">Password</Label>
                 <button
                   type="button"
-                  onClick={() => setForgotOpen(true)}
+                  onClick={() => toast.info('Coming soon! Password reset will be available shortly.')}
                   className="text-sm text-primary hover:underline"
                 >
                   Forgot password?
@@ -181,14 +180,15 @@ export default function Login() {
 
           <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline font-medium">
+            <button
+              onClick={() => toast.info('Coming soon! Sign-up will be available shortly.')}
+              className="text-primary hover:underline font-medium"
+            >
               Start free trial →
-            </Link>
+            </button>
           </p>
         </div>
       </div>
-
-      <ForgotPasswordDialog open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }
