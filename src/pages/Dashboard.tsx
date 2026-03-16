@@ -120,6 +120,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <ComplianceDisclaimer country={selectedEntity.country} />
+      {selectedEntity.country === 'QA' && <QatarRegulationNotice />}
       {/* Zone A: Status Bar */}
       <Card className="shadow-card">
         <CardContent className="p-0">
