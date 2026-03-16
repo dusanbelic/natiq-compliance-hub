@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-export function DepartmentManager() {
+export function DepartmentManager({ scrollRef }: { scrollRef?: React.RefObject<HTMLDivElement> }) {
   const { isDemoMode } = useAuth();
   const { data: company } = useCompany();
   const companyId = company?.id ?? '';
@@ -103,7 +103,7 @@ export function DepartmentManager() {
   };
 
   return (
-    <Card className="shadow-card">
+    <Card ref={scrollRef} className="shadow-card" id="departments">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Departments</CardTitle>
         {!adding && (

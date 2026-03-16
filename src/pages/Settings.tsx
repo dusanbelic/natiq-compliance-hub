@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +36,15 @@ export default function Settings() {
   const { canManageTeam, canEditCompany, canManageBilling, canInviteMembers } = usePermissions();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const activeTab = searchParams.get('tab') || 'profile';
+  const deptRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (location.hash === '#departments') {
+      setTimeout(() => deptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+    }
+  }, [location.hash, activeTab]);
 
   // Live data hooks
   const { data: company, isLoading: companyLoading } = useCompany();
@@ -207,7 +215,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
-          <DepartmentManager />
+          <DepartmentManager scrollRef={deptRef} />
         </TabsContent>
 
         {/* My Profile & Notifications */}
