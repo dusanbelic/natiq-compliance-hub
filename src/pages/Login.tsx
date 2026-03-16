@@ -189,8 +189,6 @@ export default function Login() {
           </p>
         </div>
       </div>
-
-      <ForgotPasswordDialog open={forgotOpen} onClose={() => setForgotOpen(false)} />
     </div>
   );
 }
