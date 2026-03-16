@@ -268,7 +268,7 @@ export function EntityProvider({ children }: { children: ReactNode }) {
     entities.forEach(entity => {
       const emps = employeesByEntity[entity.id] || [];
       const score = scoresByEntity[entity.id];
-      result[entity.id] = computeScoreFromEmployees(emps, entity, score);
+      result[entity.id] = computeScoreFromEmployees(emps, entity, score, complianceRules);
     });
     return result;
   }, [isDemoMode, entities, employeesByEntity, scoresByEntity]);
