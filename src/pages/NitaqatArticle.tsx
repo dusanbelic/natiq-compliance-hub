@@ -41,7 +41,7 @@ export default function NitaqatArticle() {
 
       {/* Article */}
       <article className="py-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 prose prose-slate max-w-none">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 prose prose-lg prose-slate max-w-none">
 
           <h2 className="font-sora font-bold text-2xl mt-0 mb-4" style={{ color: '#1B3A5C' }}>What is Nitaqat and why does it matter</h2>
           <p className="text-muted-foreground leading-relaxed mb-6">
