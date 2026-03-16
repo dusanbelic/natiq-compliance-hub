@@ -139,7 +139,7 @@ export default function Settings() {
     <div className="space-y-6">
       <h1 className="font-sora font-bold text-2xl">Settings</h1>
 
-      <Tabs defaultValue="profile">
+      <Tabs value={activeTab} onValueChange={(v) => setSearchParams({ tab: v })}>
         <TabsList>
           {canEditCompany && <TabsTrigger value="company">Company Profile</TabsTrigger>}
           <TabsTrigger value="profile">My Profile</TabsTrigger>
