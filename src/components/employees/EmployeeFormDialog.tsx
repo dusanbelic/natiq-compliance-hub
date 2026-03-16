@@ -39,6 +39,7 @@ interface EmployeeFormDialogProps {
   employee?: Employee | null;
   onSave: (data: FormData) => void;
   departments?: string[];
+  salaryBands?: string[];
 }
 
 export function EmployeeFormDialog({ open, onClose, employee, onSave, departments = [] }: EmployeeFormDialogProps) {
