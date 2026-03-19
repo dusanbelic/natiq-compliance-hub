@@ -132,7 +132,7 @@ export default function Landing() {
                 Stop guessing.<br />Start knowing.
               </h1>
               <p className="text-lg sm:text-xl mb-8 max-w-xl" style={{ color: '#CBD5E1' }}>
-                NatIQ tracks your Saudisation, Emiratisation, and Qatarisation ratios in real time and tells you exactly what to do to stay compliant.
+                NatIQ uses AI to track your Saudisation, Emiratisation, and Qatarisation ratios in real time and tells you exactly what to do to stay compliant.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                 <Button size="lg" className="text-base px-8 rounded-full hover:bg-primary-foreground hover:text-primary transition-colors duration-300" onClick={() => partnerRef.current?.scrollIntoView({ behavior: 'smooth' })}>
