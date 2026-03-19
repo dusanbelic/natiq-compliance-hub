@@ -149,7 +149,7 @@ export default function Landing() {
                 </Button>
               </div>
               <p className="text-sm mt-4" style={{ color: '#94A3B8' }}>
-                Currently accepting 20 design partners · Free for 12 months · No payment required
+                Currently accepting 20 design partners · Free for 6 months · No payment required
               </p>
             </div>
             <div className="lg:w-[45%] flex justify-center">
