@@ -110,7 +110,7 @@ function AppRoutes() {
       <Routes>
         {/* Public landing page */}
         <Route path="/" element={
-          user || isDemoMode ? <Navigate to="/dashboard" replace /> : <Landing />
+          user ? <Navigate to="/dashboard" replace /> : <Landing />
         } />
 
         {/* Auth routes */}
